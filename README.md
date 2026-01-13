@@ -2,7 +2,7 @@
 
 Bem-vindo ao repositório do meu portfólio pessoal. Aqui você encontrará a vitrine dos meus projetos e as tecnologias que utilizo para transformar dados em insights.
 
-> 🌐 **[Acesse meu portfólio online aqui](https://caiohenri99.github.io/portifolio/)**
+> 🌐 **[Acesse meu portfólio online aqui](https://caiohenri99.github.io/Portifolio/)**
 
 ## 🚀 Sobre Mim
 - 🎓 Graduando em **Ciência de Dados e Inteligência Artificial**.
