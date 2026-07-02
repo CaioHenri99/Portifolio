@@ -71,30 +71,6 @@ Modelo de aprendizado profundo de séries temporais para predição do índice D
 
 ---
 
-## 🔧 Executando o Portfólio Localmente
-
-Para visualizar o portfólio completo na sua máquina local com suporte total à renderização interativa 3D (WebGL/Three.js e Modelos .glb), você precisa rodar um servidor HTTP local para evitar restrições de CORS do navegador:
-
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/CaioHenri99/Portifolio.git
-   ```
-2. Acesse a pasta do projeto:
-   ```bash
-   cd Portifolio
-   ```
-3. Inicialize um servidor web simples (ex: usando Node/npm ou Python):
-   ```bash
-   # Opção 1: Node.js (npx)
-   npx http-server -p 8080
-   
-   # Opção 2: Python 3
-   python -m http.server 8080
-   ```
-4. Abra o navegador em: [http://localhost:8080](http://localhost:8080)
-
----
-
 ## 📬 Conectar-se
 
 - **LinkedIn:** [linkedin.com/in/caio-henrique7](https://www.linkedin.com/in/caio-henrique7/)
