@@ -24,7 +24,7 @@ Olá! Sou o **Caio Henrique**, desenvolvedor de software e sistemas com foco em 
 - 🎓 Graduando em **Ciência de Dados e Inteligência Artificial**.
 - 💻 **Desenvolvedor de Software e Sistemas**, com experiência prática no desenvolvimento de soluções end-to-end (da modelagem de dados à interface visual).
 - 🧠 Entusiasta de Deep Learning, Séries Temporais, Agentes de Aprendizado por Reforço e integrações de IA Generativa.
-- ⚽ Produtor de conteúdo analítico e esportivo no **Recanto FC** (@orecantofc).
+- ⚽ Produtor de conteúdo analítico e esportivo no **Vision Game** (@visiongame_) e crio conteúdo informativo sobre tecnologia no @caioandrade.ai.
 
 ---
 
