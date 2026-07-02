@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,45 +7,59 @@
     <link rel="icon" href="/src/img/CaiKo_Fundo_Branco.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap');
 
         :root {
             --primary: #6366f1;
             --primary-dark: #4f46e5;
-            --dark: #1e293b;
-            --light: #f8fafc;
+            --primary-glow: rgba(99, 102, 241, 0.2);
+            --dark: #090d16;
+            --light: #030712;
+            --neon-purple: #a855f7;
+            --neon-cyan: #06b6d4;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            color: var(--dark);
+            color: #f1f5f9;
             background-color: var(--light);
             transition: all 0.3s ease;
+            overflow-x: hidden;
         }
 
         .mono { font-family: 'IBM Plex Mono', monospace; }
+
+        /* --- Scrollbar Personalizada Global --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.7);
+        }
 
         /* --- Scrollbar Personalizada para Desktop (Projetos) --- */
         .project-scroller::-webkit-scrollbar {
             width: 8px;
         }
         .project-scroller::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             border-radius: 4px;
         }
         .project-scroller::-webkit-scrollbar-thumb {
-            background: #6366f1;
+            background: #818cf8;
             border-radius: 4px;
         }
-        .dark .project-scroller::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .dark .project-scroller::-webkit-scrollbar-thumb {
-            background: #818cf8;
-        }
 
-        /* --- Esconder Scrollbar no Mobile (Melhor Estética) --- */
+        /* --- Esconder Scrollbar no Mobile --- */
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -54,78 +68,382 @@
             scrollbar-width: none;  /* Firefox */
         }
 
-        /* Classes utilitárias para animação */
+        /* Nav links custom style */
         .nav-link { position: relative; }
         .nav-link::after {
-            content: ''; position: absolute; width: 0; height: 2px; bottom: 0; left: 0;
+            content: ''; position: absolute; width: 0; height: 2px; bottom: -4px; left: 0;
             background-color: var(--primary); transition: width 0.3s ease;
         }
         .nav-link:hover::after { width: 100%; }
 
+        /* Cursor do Typewriter em modo escuro */
         .typewriter {
-            border-right: 2px solid var(--dark);
+            border-right: 2px solid #f1f5f9;
             animation: blink 0.75s step-end infinite;
         }
         @keyframes blink {
             from, to { border-color: transparent }
-            50% { border-color: var(--dark); }
+            50% { border-color: #f1f5f9; }
         }
 
         .text-gradient-animate {
-            background: linear-gradient(to right, #4f46e5, #9333ea, #4f46e5);
-            background-size: 200% auto;
+            background: linear-gradient(to right, #6366f1, #d946ef, #06b6d4, #6366f1);
+            background-size: 300% auto;
             color: transparent;
             background-clip: text;
             -webkit-background-clip: text;
-            animation: shine 3s linear infinite;
+            animation: shine 4s linear infinite;
         }
-        @keyframes shine { to { background-position: 200% center; } }
+        @keyframes shine { to { background-position: 300% center; } }
 
         /* Barra de Progresso no Topo */
         #scroll-progress {
             position: fixed; top: 0; left: 0; height: 4px;
-            background: linear-gradient(to right, #6366f1, #a855f7);
+            background: linear-gradient(to right, #6366f1, #a855f7, #06b6d4);
             z-index: 100; width: 0%; transition: width 0.1s ease-out;
         }
 
         /* Partículas */
         .data-particle {
             position: absolute;
-            color: rgba(99, 102, 241, 0.15);
+            color: rgba(99, 102, 241, 0.18);
             font-family: 'IBM Plex Mono', monospace;
             font-weight: bold;
             pointer-events: none;
             z-index: 0;
             user-select: none;
         }
-        .dark .data-particle { color: rgba(99, 102, 241, 0.1); }
+
+        /* --- Glassmorphism --- */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.15);
+            transform: translateY(-5px);
+        }
+
+        /* --- Efeito de Reveal no Scroll --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
+        }
+        .reveal-left {
+            transform: translateX(-50px);
+        }
+        .reveal-right {
+            transform: translateX(50px);
+        }
+        .reveal-scale {
+            transform: scale(0.95);
+        }
+        .reveal-active {
+            opacity: 1;
+            transform: translate(0) scale(1);
+        }
+
+        /* --- Ambient Glows --- */
+        .ambient-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+            opacity: 0.5;
+            z-index: -10;
+            mix-blend-mode: plus-lighter;
+        }
+
+        /* --- Hover Glow do Botão --- */
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-glow::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        .btn-glow:hover::after {
+            transform: translateX(100%);
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            transform: scale(1.02);
+        }
+        .parallax-wrapper {
+            overflow: hidden;
+        }
+        .parallax-media {
+            will-change: transform;
+            transform: scale(1.15);
+            transition: transform 0.1s ease-out;
+        }
+
+        /* --- Custom Cards de Projetos (Folder Skewed Style) --- */
+        .card {
+            width: 280px;
+            height: 140px;
+            padding: 0.5rem;
+            background: rgba(15, 23, 42, 0.45);
+            border-radius: 12px;
+            backdrop-filter: blur(12px);
+            border-bottom: 3px solid rgba(255, 255, 255, 0.15);
+            border-left: 2px rgba(255, 255, 255, 0.25) outset;
+            box-shadow: -15px 20px 30px rgba(0, 0, 0, 0.4);
+            transform: skewX(10deg);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            color: white;
+            position: relative;
+        }
+
+        .card:hover {
+            height: 330px;
+            transform: skew(0deg) translateY(-8px);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.25);
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        .card .hover-content {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .card:hover .hover-content {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .align {
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: row;
+            gap: 6px;
+            align-self: flex-start;
+        }
+
+        .red {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ff605c;
+            box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.28);
+        }
+
+        .yellow {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ffbd44;
+            box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.28);
+        }
+
+        .green {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #00ca4e;
+            box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.28);
+        }
+
+        .card h1 {
+            text-align: center;
+            margin: 0.8rem 0;
+            color: rgb(218, 244, 237);
+            text-shadow: -5px 5px 10px rgba(0, 0, 0, 0.573);
+            font-size: 1.15rem;
+            font-weight: 700;
+            transition: color 0.3s;
+        }
+        
+        .card:hover h1 {
+            color: #fff;
+        }
+
+        /* --- Social Icons Custom Style (example-2) --- */
+        .example-2 {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            flex-direction: row;
+            gap: 1rem;
+            list-style: none;
+            padding: 0;
+        }
+        .example-2 .icon-content {
+            position: relative;
+        }
+        .example-2 .icon-content .tooltip {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 5px;
+            opacity: 0;
+            visibility: hidden;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+            z-index: 20;
+        }
+        .example-2 .icon-content:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+            top: -45px;
+        }
+        .example-2 .icon-content a {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            color: #cbd5e1;
+            background-color: #1e293b;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease-in-out;
+        }
+        .example-2 .icon-content a:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            color: white;
+            border-color: transparent;
+        }
+        .example-2 .icon-content a svg {
+            position: relative;
+            z-index: 1;
+            width: 22px;
+            height: 22px;
+        }
+        .example-2 .icon-content a .filled {
+            position: absolute;
+            top: auto;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            transition: all 0.3s ease-in-out;
+        }
+        .example-2 .icon-content a:hover .filled {
+            height: 100%;
+        }
+
+        .example-2 .icon-content a[data-social="linkedin"] .filled,
+        .example-2 .icon-content a[data-social="linkedin"] ~ .tooltip {
+            background-color: #0274b3;
+        }
+
+        .example-2 .icon-content a[data-social="github"] .filled,
+        .example-2 .icon-content a[data-social="github"] ~ .tooltip {
+            background-color: #24262a;
+        }
+        .example-2 .icon-content a[data-social="instagram"] .filled,
+        .example-2 .icon-content a[data-social="instagram"] ~ .tooltip {
+            background: linear-gradient(
+                45deg,
+                #405de6,
+                #5b51db,
+                #b33ab4,
+                #c135b4,
+                #e1306c,
+                #fd1f1f
+            );
+        }
+        .example-2 .icon-content a[data-social="youtube"] .filled,
+        .example-2 .icon-content a[data-social="youtube"] ~ .tooltip {
+            background-color: #ff0000;
+        }
+
+        /* --- Preloader Splash Screen --- */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-fade-in {
+            animation: fadeIn 1s ease forwards;
+        }
+
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen relative">
+    <!-- Preloader Splash Screen -->
+    <div id="preloader" class="fixed inset-0 bg-slate-950 z-[99999] flex flex-col items-center justify-center transition-all duration-700 ease-in-out">
+        <div class="relative text-center flex flex-col items-center">
+            <!-- Glowing orbital spinner -->
+            <div class="w-14 h-14 mb-6 rounded-full border-t-2 border-r-2 border-indigo-500 animate-spin"></div>
+            
+            <!-- Logo name with reveal animation -->
+            <h2 class="text-4xl md:text-5xl font-bold mono text-white tracking-widest opacity-0 animate-fade-in-up">
+                Infinit<span class="text-gradient-animate">_Dev</span>
+            </h2>
+            <p class="text-xs text-slate-500 font-mono mt-3 tracking-widest opacity-0 animate-fade-in" style="animation-delay: 0.8s;">
+                INICIALIZANDO SISTEMA...
+            </p>
+        </div>
+    </div>
+
+
+    <!-- Ambient Background Glows -->
+    <div class="fixed inset-0 pointer-events-none z-[-10] overflow-hidden">
+        <div class="ambient-glow bg-indigo-500/10 w-[600px] h-[600px] -top-[10%] -left-[10%] animate-pulse" style="animation-duration: 8s;"></div>
+        <div class="ambient-glow bg-purple-500/10 w-[700px] h-[700px] top-[40%] -right-[15%] animate-pulse" style="animation-duration: 12s;"></div>
+        <div class="ambient-glow bg-cyan-500/8 w-[500px] h-[500px] bottom-0 left-[20%] animate-pulse" style="animation-duration: 10s;"></div>
+    </div>
+
     <div id="scroll-progress"></div>
     <div id="particles-container" class="absolute inset-0 overflow-hidden h-full w-full pointer-events-none"></div>
 
-    <nav class="fixed top-0 w-full z-50 transition-all duration-300" id="navbar">
-        <div class="absolute inset-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-gray-100 dark:border-slate-800"></div>
+    <nav class="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl z-50 transition-all duration-300" id="navbar">
+        <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md border border-slate-800/60 rounded-full shadow-lg"></div>
 
-        <div class="relative max-w-6xl mx-auto px-4">
-            <div class="flex justify-between items-center py-3 md:py-4">
-                <div class="flex items-center space-x-4">
-                    <img src="src/img/CaiKo_Transparente.png" alt="Infinite_Dev logo" style="height: 80px; md:height: 110px; width: auto;" class="h-16 md:h-24">
-                    <div class="text-xl md:text-2xl font-bold mono dark:text-white">Infinit<span class="text-gradient-animate">_Dev</span></div>
+        <div class="relative px-6">
+            <div class="flex justify-between items-center py-2">
+                <div class="flex items-center space-x-3">
+                    <img src="src/img/CaiKo_Transparente.png" alt="Infinite_Dev logo" class="h-8 md:h-10 w-auto object-contain">
+                    <div class="text-base md:text-lg font-bold mono text-white">Infinit<span class="text-gradient-animate">_Dev</span></div>
                 </div>
 
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#home" class="nav-link dark:text-white">Home</a>
-                    <a href="#projects" class="nav-link dark:text-white">Projetos</a>
-                    <a href="#skills" class="nav-link dark:text-white">Habilidades</a>
-                    <a href="#about" class="nav-link dark:text-white">Sobre</a>
-                    <a href="#contact" class="nav-link dark:text-white">Contato</a>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#home" class="nav-link text-slate-300 hover:text-white transition text-sm font-medium">Home</a>
+                    <a href="#projects" class="nav-link text-slate-300 hover:text-white transition text-sm font-medium">Projetos</a>
+                    <a href="#skills" class="nav-link text-slate-300 hover:text-white transition text-sm font-medium">Habilidades</a>
+                    <a href="#about" class="nav-link text-slate-300 hover:text-white transition text-sm font-medium">Sobre</a>
+                    <a href="#contact" class="nav-link text-slate-300 hover:text-white transition text-sm font-medium">Contato</a>
                 </div>
 
                 <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-button" class="p-2 rounded-md text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 outline-none">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button id="mobile-menu-button" class="p-2 rounded-full text-slate-300 hover:text-white hover:bg-slate-800/50 outline-none transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
@@ -133,21 +451,21 @@
             </div>
         </div>
 
-        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 shadow-xl md:hidden">
+        <div id="mobile-menu" class="hidden absolute top-14 left-0 w-full bg-slate-950/95 backdrop-blur-md border border-slate-800/80 shadow-2xl rounded-2xl md:hidden overflow-hidden">
             <div class="flex flex-col p-4 space-y-2">
-                <a href="#home" class="mobile-link block px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 transition">Home</a>
-                <a href="#projects" class="mobile-link block px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 transition">Projetos</a>
-                <a href="#skills" class="mobile-link block px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 transition">Habilidades</a>
-                <a href="#about" class="mobile-link block px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 transition">Sobre</a>
-                <a href="#contact" class="mobile-link block px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 transition">Contato</a>
+                <a href="#home" class="mobile-link block px-4 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-indigo-600/20 hover:text-white transition">Home</a>
+                <a href="#projects" class="mobile-link block px-4 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-indigo-600/20 hover:text-white transition">Projetos</a>
+                <a href="#skills" class="mobile-link block px-4 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-indigo-600/20 hover:text-white transition">Habilidades</a>
+                <a href="#about" class="mobile-link block px-4 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-indigo-600/20 hover:text-white transition">Sobre</a>
+                <a href="#contact" class="mobile-link block px-4 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-indigo-600/20 hover:text-white transition">Contato</a>
             </div>
         </div>
     </nav>
 
-    <section id="home" class="pt-32 pb-10 md:py-20 px-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900">
+    <section id="home" class="relative pt-32 pb-10 md:py-20 px-4 bg-transparent overflow-hidden">
         <div class="max-w-6xl mx-auto">
             <div class="flex flex-col md:flex-row items-center">
-                <div class="md:w-1/2 mb-10 md:mb-0">
+                <div class="md:w-1/2 mb-10 md:mb-0 reveal reveal-left">
                     <h1 class="text-3xl md:text-6xl font-bold mb-6 dark:text-white">
                         <span class="typewriter" id="typewriter"></span>
                     </h1>
@@ -155,66 +473,37 @@
                         Soluções inteligentes de Ciência de Dados e Inteligência Artificial para transformar dados em insights valiosos.
                     </p>
                     <div class="flex flex-wrap gap-4">
-                        <a href="#projects" class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">Ver projetos</a>
-                        <a href="#contact" class="px-6 py-3 border-2 border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-600 hover:text-white transition dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-400 dark:hover:text-white dark:hover:border-indigo-400">Contato</a>
+                        <a href="#projects" class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition btn-glow">Ver projetos</a>
+                        <a href="#contact" class="px-6 py-3 border-2 border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-600 hover:text-white transition dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-400 dark:hover:text-white dark:hover:border-indigo-400 btn-glow">Contato</a>
                     </div>
                 </div>
-
-                <div class="md:w-2/3 flex justify-center w-full">
-                    <div class="relative w-full max-w-2xl touch-pan-y"> <div class="absolute -top-5 -left-5 w-64 h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob dark:bg-purple-800"></div>
-                        <div class="absolute -bottom-5 -right-5 w-64 h-64 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob dark:bg-indigo-800"></div>
-
-                        <model-viewer
-                            class="min-h-[450px] md:min-h-[600px] w-full"
-                            src="src/img/Bender-3d.glb"
-                            auto-rotate
-                            camera-controls
-                            disable-zoom
-                            touch-action="pan-y"
-                            camera-orbit="90deg 90deg"
-                            ar
-                            shadow-intensity="1"
-                            alt="Um Modelo 3D do Bender de Futurama."
-                            environment-image="neutral"
-                            loading="lazy"
-                            scale="3 3 3">
-                        </model-viewer>
+ 
+                <div class="md:w-1/2 flex justify-center w-full reveal reveal-right">
+                    <div class="relative w-full max-w-2xl aspect-square flex items-center justify-center">
+                        <!-- Ambient Glow backing the canvas -->
+                        <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-cyan-500/10 rounded-full filter blur-3xl opacity-60 animate-pulse" style="animation-duration: 8s;"></div>
+                        
+                        <!-- Three.js Canvas container -->
+                        <div id="globe-container" class="w-full h-[350px] sm:h-[450px] md:h-[500px] cursor-grab active:cursor-grabbing"></div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="projects" class="py-10 md:py-20 px-4 bg-white dark:bg-slate-900 transition-colors duration-300">
-        <div class="max-w-5xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-4 dark:text-white">Projetos Recentes</h2>
-            <p class="text-center text-gray-500 mb-12 dark:text-gray-400">Explore os projetos rolando o card abaixo.</p>
-
-            <div class="bg-gray-50 dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-slate-700 relative">
-
-                <div class="bg-indigo-600 p-3 flex items-center justify-between text-white">
-                    <div class="flex space-x-2">
-                        <div class="w-3 h-3 rounded-full bg-red-400"></div>
-                        <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-                        <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                    </div>
-                    <div class="font-mono text-sm opacity-80">projects_explorer.exe</div>
-                    <div class="w-8"></div> </div>
-
-                <div class="relative h-[550px]">
-                    <div id="projects-container" class="project-scroller hide-scrollbar h-full overflow-y-auto snap-y snap-mandatory scroll-smooth">
-                    </div>
-
-                    <div class="absolute bottom-4 right-6 bg-white/80 dark:bg-slate-900/80 px-3 py-1 rounded-full text-xs font-bold text-indigo-600 dark:text-indigo-400 backdrop-blur-sm pointer-events-none animate-bounce">
-                        ↓ Role para ver mais
-                    </div>
-                </div>
+    <section id="projects" class="py-10 md:py-20 px-4 bg-transparent">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-4 dark:text-white reveal reveal-scale">Projetos Recentes</h2>
+            <p class="text-center text-gray-500 mb-16 dark:text-gray-400 reveal reveal-scale" style="transition-delay: 150ms;">Explore alguns dos trabalhos mais recentes desenvolvidos.</p>
+ 
+            <div id="projects-container" class="flex flex-wrap justify-center gap-10 py-10">
+                <!-- Injected via JavaScript -->
             </div>
         </div>
     </section>
 
-    <div id="project-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden backdrop-blur-sm px-4">
-        <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto dark:bg-slate-800 shadow-2xl transform transition-all">
+    <div id="project-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden backdrop-blur-sm px-4">
+        <div class="glass-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-2xl font-bold dark:text-white">Detalhes do Projeto</h3>
@@ -229,97 +518,97 @@
         </div>
     </div>
 
-    <section id="skills" class="py-10 md:py-20 px-4 bg-gray-50 dark:bg-slate-800">
+    <section id="skills" class="py-10 md:py-20 px-4 bg-transparent">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-12 dark:text-white">Habilidades Técnicas</h2>
-
+            <h2 class="text-3xl font-bold text-center mb-12 dark:text-white reveal reveal-scale">Habilidades Técnicas</h2>
+ 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-                <div class="bg-white p-8 rounded-lg shadow-md dark:bg-slate-700 h-full">
+ 
+                <div class="glass-card p-8 rounded-2xl h-full reveal reveal-left" style="transition-delay: 200ms;">
                     <h3 class="text-xl font-bold mb-6 dark:text-white flex items-center gap-2">
                         <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                         Tecnologias
                     </h3>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">Python</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">Machine Learning</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">GenAI</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">SQL</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">Keras</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">TensorFlow</span>
                         </div>
                     </div>
                 </div>
-
-                <div class="bg-white p-8 rounded-lg shadow-md dark:bg-slate-700 h-full">
+ 
+                <div class="glass-card p-8 rounded-2xl h-full reveal reveal-right" style="transition-delay: 200ms;">
                     <h3 class="text-xl font-bold mb-6 dark:text-white flex items-center gap-2">
                         <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         Ferramentas & Libs
                     </h3>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">Pandas</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">NumPy</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">Google AI Studio</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">Streamlit</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">Docker</span>
                         </div>
-                        <div class="px-4 py-2 bg-gray-100 dark:bg-slate-600 rounded-md text-center hover:bg-indigo-50 dark:hover:bg-slate-500 transition border border-transparent hover:border-indigo-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
                             <span class="font-medium text-sm dark:text-gray-200">Git/Github</span>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="mt-12 bg-white p-8 rounded-lg shadow-md dark:bg-slate-700">
+ 
+            <div class="mt-12 glass-card p-8 rounded-2xl reveal reveal-scale" style="transition-delay: 350ms;">
                 <h3 class="text-xl font-bold mb-6 dark:text-white">Áreas de Atuação</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div class="text-center group hover:transform hover:-translate-y-1 transition duration-300">
-                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-100 rounded-full flex items-center justify-center dark:bg-indigo-900 group-hover:bg-indigo-600 transition">
-                            <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-950/60 border border-indigo-800/40 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-500 transition duration-300">
+                            <svg class="w-8 h-8 text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
                         </div>
                         <h4 class="font-medium dark:text-gray-200">Análise de Dados</h4>
                     </div>
                     <div class="text-center group hover:transform hover:-translate-y-1 transition duration-300">
-                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-100 rounded-full flex items-center justify-center dark:bg-indigo-900 group-hover:bg-indigo-600 transition">
-                            <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-950/60 border border-indigo-800/40 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-500 transition duration-300">
+                            <svg class="w-8 h-8 text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                             </svg>
                         </div>
                         <h4 class="font-medium dark:text-gray-200">Business Intelligence</h4>
                     </div>
                     <div class="text-center group hover:transform hover:-translate-y-1 transition duration-300">
-                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-100 rounded-full flex items-center justify-center dark:bg-indigo-900 group-hover:bg-indigo-600 transition">
-                            <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-950/60 border border-indigo-800/40 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-500 transition duration-300">
+                            <svg class="w-8 h-8 text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                             </svg>
                         </div>
                         <h4 class="font-medium dark:text-gray-200">Agentes de IA</h4>
                     </div>
                     <div class="text-center group hover:transform hover:-translate-y-1 transition duration-300">
-                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-100 rounded-full flex items-center justify-center dark:bg-indigo-900 group-hover:bg-indigo-600 transition">
-                            <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-950/60 border border-indigo-800/40 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-500 transition duration-300">
+                            <svg class="w-8 h-8 text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                             </svg>
                         </div>
@@ -328,16 +617,14 @@
                 </div>
             </div>
         </div>
-    </section>
-
-    <section id="about" class="py-10 md:py-20 px-4 bg-white dark:bg-[#0f172a]"> <div class="max-w-6xl mx-auto">
+        <section id="about" class="py-10 md:py-20 px-4 bg-transparent"> <div class="max-w-6xl mx-auto">
             <div class="flex flex-col md:flex-row items-center gap-12">
-
-                <div class="md:w-1/3 flex justify-center relative group w-full">
+ 
+                <div class="md:w-1/3 flex justify-center relative group w-full reveal reveal-left" style="transition-delay: 150ms;">
                     <div class="relative w-full max-w-sm h-[400px] flex items-end justify-center touch-pan-y">
-
-                        <div class="absolute inset-0 bg-indigo-100 dark:bg-indigo-900/30 rounded-full blur-2xl transform scale-75 translate-y-4 -z-10"></div>
-
+ 
+                        <div class="absolute inset-0 bg-indigo-500/10 dark:bg-indigo-900/20 rounded-full blur-3xl transform scale-75 translate-y-4 -z-10 animate-pulse"></div>
+ 
                         <model-viewer
                             class="w-full h-full absolute top-0 left-0 z-10"
                             src="src/img/CaiKo3D.glb"
@@ -352,7 +639,7 @@
                             min-camera-orbit="auto auto 5%"
                             max-camera-orbit="auto auto 100%">
                         </model-viewer>
-
+ 
                         <div class="z-20 mb-4 px-6 py-2 bg-slate-800 rounded-full shadow-lg border border-slate-700 flex items-center gap-2 transform transition hover:scale-105">
                             <span class="font-bold text-white whitespace-nowrap">Caio Henrique</span>
                             <svg class="w-5 h-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
@@ -361,13 +648,13 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="md:w-2/3">
+ 
+                <div class="md:w-2/3 reveal reveal-right" style="transition-delay: 200ms;">
                     <h2 class="text-3xl font-bold mb-6 dark:text-white">Sobre Mim</h2>
                     <p class="text-gray-600 mb-6 dark:text-gray-300 leading-relaxed">
                         Fascinado pelo poder da tecnologia para transformar o mundo e traduzir grandes volumes de dados em decisões inteligentes. Meu foco está em construir soluções que unem Inteligência Artificial, automação e análise estratégica para resolver problemas reais.
                     </p>
-
+ 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                         <div>
                             <h4 class="font-bold mb-4 dark:text-white text-lg">Experiência Profissional</h4>
@@ -378,7 +665,7 @@
                                 </li>
                                 <li class="flex items-start">
                                     <svg class="w-5 h-5 text-indigo-500 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    <span class="text-gray-600 dark:text-gray-300">Estagiário da TV Anhanguera</span>
+                                    <span class="text-gray-600 dark:text-gray-300">Desenvolvedor de Software e Sistemas</span>
                                 </li>
                                 <li class="flex items-start">
                                     <svg class="w-5 h-5 text-indigo-500 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -386,7 +673,7 @@
                                 </li>
                             </ul>
                         </div>
-
+ 
                         <div>
                             <h4 class="font-bold mb-4 dark:text-white text-lg">Projetos Pessoais</h4>
                             <ul class="space-y-3">
@@ -408,116 +695,128 @@
                                 </li>
                             </ul>
                         </div>
-                    </div>
-
+                     </div>
+ 
                     <div class="flex flex-wrap gap-4">
-                        <a href="#" class="px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30">Download CV</a>
-                        <a href="#contact" class="px-6 py-3 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-800 hover:text-white transition">Entre em Contato</a>
+                        <a href="#" class="px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 btn-glow">Download CV</a>
+                        <a href="#contact" class="px-6 py-3 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-800 hover:text-white transition btn-glow">Entre em Contato</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="contact" class="py-10 md:py-20 px-4 bg-gray-50 dark:bg-slate-800">
+    <section id="contact" class="py-10 md:py-20 px-4 bg-transparent">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-12 dark:text-white">Entre em Contato</h2>
+            <h2 class="text-3xl font-bold text-center mb-12 dark:text-white reveal reveal-scale">Entre em Contato</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div>
+                <div class="reveal reveal-left" style="transition-delay: 150ms;">
                     <h3 class="text-xl font-bold mb-6 dark:text-white">Informações de Contato</h3>
                     <div class="space-y-6">
                         <div class="flex items-start">
                             <div class="mr-4 mt-1">
-                                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                                 </svg>
                             </div>
                             <div>
                                 <h4 class="font-medium mb-1 dark:text-gray-200">Telefone</h4>
-                                <p class="text-gray-600 dark:text-gray-300">+55 (62) 98177-4295</p>
+                                <p class="text-gray-400">+55 (62) 98177-4295</p>
                             </div>
                         </div>
                         <div class="flex items-start">
                             <div class="mr-4 mt-1">
-                                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                 </svg>
                             </div>
                             <div>
                                 <h4 class="font-medium mb-1 dark:text-gray-200">Email</h4>
-                                <p class="text-gray-600 dark:text-gray-300">infinit.dev7@gmail.com</p>
+                                <p class="text-gray-400">infinit.dev7@gmail.com</p>
                             </div>
                         </div>
                         <div class="flex items-start">
                             <div class="mr-4 mt-1">
-                                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
                             </div>
                             <div>
                                 <h4 class="font-medium mb-1 dark:text-gray-200">Localização</h4>
-                                <p class="text-gray-600 dark:text-gray-300">Goiânia, Brasil</p>
+                                <p class="text-gray-400">Goiânia, Brasil</p>
                             </div>
                         </div>
                         <div class="flex items-start">
                             <div class="mr-4 mt-1">
-                                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                                 </svg>
                             </div>
                             <div>
                                 <h4 class="font-medium mb-1 dark:text-gray-200">Horário</h4>
-                                <p class="text-gray-600 dark:text-gray-300">Seg-Sex: 9:00 - 18:00</p>
+                                <p class="text-gray-400">Seg-Sex: 9:00 - 18:00</p>
                             </div>
                         </div>
                     </div>
                     <div class="mt-8">
                         <h4 class="font-medium mb-4 dark:text-gray-200">Redes Sociais</h4>
-                        <div class="flex space-x-4">
-                            <a href="https://www.linkedin.com/in/caio-henrique7/" class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 hover:bg-indigo-600 hover:text-white transition dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-600 dark:hover:text-white">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"></path>
-                                </svg>
-                            </a>
-                            <a href="https://www.instagram.com/caioandrade.ai/" class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 hover:bg-indigo-600 hover:text-white transition dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-600 dark:hover:text-white">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"></path>
-                                </svg>
-                            </a>
-                            <a href="https://github.com/CaioHenri99" class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 hover:bg-indigo-600 hover:text-white transition dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-600 dark:hover:text-white">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
-                                </svg>
-                            </a>
-                        </div>
+                        <ul class="example-2">
+                            <li class="icon-content">
+                                <a href="https://www.linkedin.com/in/caio-henrique7/" aria-label="LinkedIn" data-social="linkedin" target="_blank" rel="noopener noreferrer">
+                                    <div class="filled"></div>
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"></path>
+                                    </svg>
+                                </a>
+                                <div class="tooltip">LinkedIn</div>
+                            </li>
+                            <li class="icon-content">
+                                <a href="https://github.com/CaioHenri99" aria-label="GitHub" data-social="github" target="_blank" rel="noopener noreferrer">
+                                    <div class="filled"></div>
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
+                                    </svg>
+                                </a>
+                                <div class="tooltip">GitHub</div>
+                            </li>
+                            <li class="icon-content">
+                                <a href="https://www.instagram.com/caioandrade.ai/" aria-label="Instagram" data-social="instagram" target="_blank" rel="noopener noreferrer">
+                                    <div class="filled"></div>
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"></path>
+                                    </svg>
+                                </a>
+                                <div class="tooltip">Instagram</div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-                <div>
+                <div class="glass-card p-6 md:p-8 rounded-2xl reveal reveal-right" style="transition-delay: 200ms;">
                     <h3 class="text-xl font-bold mb-6 dark:text-white">Envie uma Mensagem</h3>
                     <form id="contact-form" class="space-y-6">
                         <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Nome</label>
-                            <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                            <label for="name" class="block text-sm font-medium text-slate-300 mb-1">Nome</label>
+                            <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-slate-700/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-slate-900/60 text-white">
                         </div>
                         <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Email</label>
-                            <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                            <label for="email" class="block text-sm font-medium text-slate-300 mb-1">Email</label>
+                            <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-slate-700/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-slate-900/60 text-white">
                         </div>
                         <div>
-                            <label for="subject" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Assunto</label>
-                            <input type="text" id="subject" name="subject" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white">
+                            <label for="subject" class="block text-sm font-medium text-slate-300 mb-1">Assunto</label>
+                            <input type="text" id="subject" name="subject" class="w-full px-4 py-2 border border-slate-700/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-slate-900/60 text-white">
                         </div>
                         <div>
-                            <label for="message" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">Mensagem</label>
-                            <textarea id="message" name="message" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"></textarea>
+                            <label for="message" class="block text-sm font-medium text-slate-300 mb-1">Mensagem</label>
+                            <textarea id="message" name="message" rows="4" required class="w-full px-4 py-2 border border-slate-700/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-slate-900/60 text-white"></textarea>
                         </div>
-                        <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition w-full">Enviar Mensagem</button>
+                        <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition w-full btn-glow">Enviar Mensagem</button>
                     </form>
-                    <div id="form-success" class="mt-4 p-4 bg-green-100 text-green-700 rounded-md hidden dark:bg-green-900 dark:text-green-200">
+                    <div id="form-success" class="mt-4 p-4 bg-green-900/60 border border-green-800 text-green-200 rounded-md hidden">
                         Sua mensagem foi enviada com sucesso! Entrarei em contato em breve.
                     </div>
-                    <div id="form-error" class="mt-4 p-4 bg-red-100 text-red-700 rounded-md hidden dark:bg-red-900 dark:text-red-200">
+                    <div id="form-error" class="mt-4 p-4 bg-red-900/60 border border-red-800 text-red-200 rounded-md hidden">
                         Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente mais tarde.
                     </div>
                 </div>
@@ -525,48 +824,19 @@
         </div>
     </section>
 
-    <footer class="bg-slate-900 text-white py-8 px-4">
-        <div class="max-w-6xl mx-auto">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="mb-6 md:mb-0">
-                    <div class="text-2xl font-bold mono">Infinit<span class="text-indigo-400">_Dev</span></div>
-                    <p class="mt-2 text-gray-400">Transformando dados em soluções inteligentes.</p>
-                </div>
-
-                <div class="flex flex-wrap justify-center gap-8">
-                    <div>
-                        <h4 class="font-bold mb-4">Links Rápidos</h4>
-                        <ul class="space-y-2">
-                            <li><a href="#home" class="text-gray-400 hover:text-white transition">Home</a></li>
-                            <li><a href="#projects" class="text-gray-400 hover:text-white transition">Projetos</a></li>
-                            <li><a href="#skills" class="text-gray-400 hover:text-white transition">Habilidades</a></li>
-                            <li><a href="#contact" class="text-gray-400 hover:text-white transition">Contato</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 class="font-bold mb-4">Serviços</h4>
-                        <ul class="space-y-2">
-                            <li><a href="#" class="text-gray-400 hover:text-white transition">Análise de Dados</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition">Machine Learning</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition">Visualização</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition">Consultoria</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 class="font-bold mb-4">Legal</h4>
-                        <ul class="space-y-2">
-                            <li><a href="#" class="text-gray-400 hover:text-white transition">Termos</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition">Privacidade</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition">Cookies</a></li>
-                        </ul>
-                    </div>
-                </div>
+    <footer class="border-t border-slate-900/60 py-6 px-4 bg-transparent">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-2">
+                <div class="text-lg font-bold mono text-white">Infinit<span class="text-gradient-animate">_Dev</span></div>
+                <div class="text-sm text-slate-500">| © 2026. Todos os direitos reservados.</div>
             </div>
-
-            <div class="border-t border-slate-800 mt-8 pt-6 text-center text-gray-400">
-                <p>© 2025 Infinite_Dev. Todos os direitos reservados.</p>
+ 
+            <div class="flex flex-wrap gap-x-6 gap-y-2 justify-center text-sm text-slate-400">
+                <a href="#home" class="hover:text-white transition">Home</a>
+                <a href="#projects" class="hover:text-white transition">Projetos</a>
+                <a href="#skills" class="hover:text-white transition">Habilidades</a>
+                <a href="#about" class="hover:text-white transition">Sobre</a>
+                <a href="#contact" class="hover:text-white transition">Contato</a>
             </div>
         </div>
     </footer>
@@ -617,68 +887,57 @@
                 }
             ];
 
-            // --- RENDERIZAR PROJETOS DINAMICAMENTE (SCROLL VIEW) ---
+            // --- RENDERIZAR PROJETOS DINAMICAMENTE (PASTA GLASS SKEWED) ---
             const projectsContainer = document.getElementById('projects-container');
-
-projects.forEach((project, index) => {
-    // --- LÓGICA CONDICIONAL: Verifica se existe modelo 3D ou usa imagem ---
-    let mediaElement;
-
-    if (project.model) {
-        // Se tiver modelo, cria o visualizador 3D
-        mediaElement = `
-            <model-viewer
-                src="${project.model}"
-                alt="${project.title}"
-                auto-rotate
-                camera-controls
-                camera-orbit="90deg 90deg 3m"
-                shadow-intensity="1"
-                class="w-full h-full"
-                style="background-color: transparent;"
-            >
-            </model-viewer>
-        `;
-    } else {
-        // Se não tiver, usa a imagem padrão
-        mediaElement = `
-            <img src="${project.image}" alt="${project.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
-        `;
-    }
-
-    const projectHTML = `
-    <div class="snap-center h-full w-full flex items-center justify-center p-6 md:p-12 shrink-0 border-b border-gray-100 dark:border-slate-700 last:border-0">
-        <div class="flex flex-col md:flex-row gap-8 items-center w-full">
-
-            <div class="w-full md:w-1/2 h-64 md:h-80 rounded-xl overflow-hidden shadow-lg group relative bg-gray-100 dark:bg-slate-700">
-                ${mediaElement}
-            </div>
-
-            <div class="w-full md:w-1/2 text-left">
-                <h3 class="text-2xl font-bold mb-3 dark:text-white">${project.title}</h3>
-                <p class="text-gray-600 dark:text-gray-300 mb-6 text-sm md:text-base leading-relaxed">
-                    ${project.description}
-                </p>
-
-                <div class="flex flex-wrap gap-2 mb-6">
-                    ${project.technologies.map(tech => `
-                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded-full dark:bg-indigo-900 dark:text-indigo-200">
-                            ${tech}
-                        </span>
-                    `).join('')}
+ 
+            projects.forEach((project, index) => {
+                const projectHTML = `
+                <div class="card cursor-pointer reveal reveal-scale" style="transition-delay: ${index * 100}ms;" data-index="${index}">
+                    <div class="align">
+                        <div class="red"></div>
+                        <div class="yellow"></div>
+                        <div class="green"></div>
+                    </div>
+                    <h1>${project.title}</h1>
+                    <div class="hover-content flex flex-col items-center justify-between px-4 pb-4 h-[180px] mt-2">
+                        <div class="flex flex-wrap gap-1 justify-center mb-2">
+                            ${project.technologies.slice(0, 3).map(tech => `
+                                <span class="px-2 py-0.5 bg-slate-900/60 text-indigo-300 text-[10px] font-semibold rounded border border-indigo-900/40">
+                                    ${tech}
+                                </span>
+                            `).join('')}
+                        </div>
+                        <p class="text-[11px] text-slate-300 text-center line-clamp-2 mb-2 leading-relaxed">
+                            ${project.description}
+                        </p>
+                        <button class="view-details-dynamic px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded shadow transition-all btn-glow" data-index="${index}">
+                            Ver Detalhes
+                        </button>
+                    </div>
                 </div>
+                `;
+                projectsContainer.insertAdjacentHTML('beforeend', projectHTML);
+            });
+ 
+            // --- SCROLL REVEAL EFFECT ---
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px 0px -80px 0px',
+                threshold: 0.15
+            };
 
-                <button class="view-details-dynamic px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md transition-all transform hover:-translate-y-1" data-index="${index}">
-                    Ver Detalhes Completos
-                </button>
-            </div>
-        </div>
-    </div>
-    `;
-    projectsContainer.insertAdjacentHTML('beforeend', projectHTML);
-});
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('reveal-active');
+                    }
+                });
+            }, observerOptions);
 
+            document.querySelectorAll('.reveal').forEach(element => {
+                revealObserver.observe(element);
+            });
+ 
             // --- TYPEWRITER EFFECT ---
             const phrases = ["Ciência de Dados", "Machine Learning", "Inteligência Artificial", "Análise Preditiva", "Python", "Insights", "Storytelling"];
             const typewriter = document.getElementById('typewriter');
@@ -686,29 +945,29 @@ projects.forEach((project, index) => {
             let currentPhrase = [];
             let isDeleting = false;
             let isEnd = false;
-
+ 
             function loop() {
                 isEnd = false;
                 typewriter.textContent = currentPhrase.join('');
-
+ 
                 if (i < phrases.length) {
                     if (!isDeleting && j <= phrases[i].length) {
                         currentPhrase.push(phrases[i][j]);
                         j++;
                         typewriter.textContent = currentPhrase.join('');
                     }
-
+ 
                     if (isDeleting && j >= 0) {
                         currentPhrase.pop();
                         j--;
                         typewriter.textContent = currentPhrase.join('');
                     }
-
+ 
                     if (j == phrases[i].length) {
                         isEnd = true;
                         isDeleting = true;
                     }
-
+ 
                     if (isDeleting && j === 0) {
                         currentPhrase = [];
                         isDeleting = false;
@@ -720,58 +979,58 @@ projects.forEach((project, index) => {
                 setTimeout(loop, time);
             }
             loop();
-
+ 
             // Mobile menu toggle
             document.getElementById('mobile-menu-button').addEventListener('click', function() {
                 document.getElementById('mobile-menu').classList.toggle('hidden');
             });
-
+ 
             // Fechar menu mobile ao clicar em um link (NOVO)
             document.querySelectorAll('.mobile-link').forEach(link => {
                 link.addEventListener('click', () => {
                     document.getElementById('mobile-menu').classList.add('hidden');
                 });
             });
-
+ 
             // --- MODAL LOGIC (UPDATED FOR DYNAMIC BUTTONS) ---
             const modal = document.getElementById('project-modal');
             const modalContent = document.getElementById('modal-content');
             const closeModal = document.getElementById('close-modal');
-
+ 
             // Event Delegation para botões dinâmicos
             document.addEventListener('click', function(e) {
                 if(e.target && e.target.classList.contains('view-details-dynamic')) {
                     const index = e.target.getAttribute('data-index');
                     const project = projects[index];
-
+ 
                     modalContent.innerHTML = `
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="md:col-span-2">
                                 <h4 class="text-2xl font-bold dark:text-white mb-2">${project.title}</h4>
-                                <p class="text-gray-600 dark:text-gray-300">${project.description}</p>
+                                <p class="text-slate-300 text-sm md:text-base leading-relaxed">${project.description}</p>
                             </div>
-
-                            <div class="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+ 
+                            <div class="bg-slate-900/50 border border-slate-700/50 p-5 rounded-xl">
                                 <h5 class="font-bold mb-3 dark:text-white flex items-center">
-                                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    <svg class="w-5 h-5 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                     Recursos Principais
                                 </h5>
                                 <ul class="space-y-2">
                                     ${project.features.map(feature => `
-                                        <li class="flex items-start text-sm dark:text-gray-300">
-                                            <span class="mr-2 text-indigo-500">•</span> ${feature}
+                                        <li class="flex items-start text-sm text-slate-300">
+                                            <span class="mr-2 text-indigo-400">•</span> ${feature}
                                         </li>
                                     `).join('')}
                                 </ul>
                             </div>
-
+ 
                             <div>
                                 <h5 class="font-bold mb-3 dark:text-white">Stack Tecnológico</h5>
                                 <div class="flex flex-wrap gap-2">
-                                    ${project.technologies.map(tech => `<span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full dark:bg-indigo-900 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-800">${tech}</span>`).join('')}
+                                    ${project.technologies.map(tech => `<span class="px-3 py-1 bg-indigo-950/60 text-indigo-300 text-xs rounded-full border border-indigo-900/60">${tech}</span>`).join('')}
                                 </div>
                                 <div class="mt-6">
-                                    <img src="${project.image}" alt="${project.title}" class="w-full rounded-lg shadow-md border border-gray-200 dark:border-slate-600" />
+                                    <img src="${project.image}" alt="${project.title}" class="w-full rounded-lg shadow-md border border-slate-700" />
                                 </div>
                             </div>
                         </div>
@@ -780,12 +1039,12 @@ projects.forEach((project, index) => {
                     document.body.style.overflow = 'hidden';
                 }
             });
-
+ 
             closeModal.addEventListener('click', function() {
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
             });
-
+ 
             // Fechar modal clicando fora
             modal.addEventListener('click', function(e) {
                 if(e.target === modal) {
@@ -793,7 +1052,7 @@ projects.forEach((project, index) => {
                     document.body.style.overflow = 'auto';
                 }
             });
-
+ 
             // Contact Form Simples
             const contactForm = document.getElementById('contact-form');
             contactForm.addEventListener('submit', function(e) {
@@ -806,8 +1065,8 @@ projects.forEach((project, index) => {
                     }, 5000);
                 }, 1000);
             });
-
-
+ 
+ 
             // Smooth Scroll
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
@@ -815,8 +1074,182 @@ projects.forEach((project, index) => {
                     document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
                 });
             });
+            // --- GLOBO HOLOGRÁFICO DE DADOS EM THREE.JS ---
+            const container = document.getElementById('globe-container');
+            if (container) {
+                const width = container.clientWidth;
+                const height = container.clientHeight || 450;
+ 
+                // Scene, Camera, Renderer
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+                camera.position.z = 250;
+ 
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(renderer.domElement);
+ 
+                // Create Globe Group
+                const globeGroup = new THREE.Group();
+                scene.add(globeGroup);
+ 
+                // 1. Globe Particles (Points Geometry)
+                const radius = 80;
+                const segments = 45;
+                const rings = 45;
+                const vertices = [];
+                const colors = [];
+                
+                const colorIndigo = new THREE.Color('#6366f1');
+                const colorCyan = new THREE.Color('#06b6d4');
+ 
+                for (let r = 0; r < rings; r++) {
+                    const phi = (r / rings) * Math.PI;
+                    for (let s = 0; s < segments; s++) {
+                        const theta = (s / segments) * Math.PI * 2;
+ 
+                        const x = radius * Math.sin(phi) * Math.cos(theta);
+                        const y = radius * Math.cos(phi);
+                        const z = radius * Math.sin(phi) * Math.sin(theta);
+ 
+                        vertices.push(x, y, z);
+                        
+                        const mixedColor = colorIndigo.clone().lerp(colorCyan, Math.random());
+                        colors.push(mixedColor.r, mixedColor.g, mixedColor.b);
+                    }
+                }
+ 
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+ 
+                const pMaterial = new THREE.PointsMaterial({
+                    size: 1.5,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 0.85,
+                    blending: THREE.AdditiveBlending
+                });
+ 
+                const globeParticles = new THREE.Points(geometry, pMaterial);
+                globeGroup.add(globeParticles);
+ 
+                // 2. Orbiting Satellite Rings
+                const ringsArray = [];
+                const ringCount = 3;
+                for (let idx = 0; idx < ringCount; idx++) {
+                    const ringRadius = radius + 15 + idx * 8;
+                    const ringGeometry = new THREE.BufferGeometry();
+                    const ringPoints = [];
+                    const ptCount = 64;
+                    for (let pIdx = 0; pIdx <= ptCount; pIdx++) {
+                        const ang = (pIdx / ptCount) * Math.PI * 2;
+                        ringPoints.push(
+                            ringRadius * Math.cos(ang),
+                            0,
+                            ringRadius * Math.sin(ang)
+                        );
+                    }
+                    ringGeometry.setAttribute('position', new THREE.Float32BufferAttribute(ringPoints, 3));
+                    
+                    const ringMaterial = new THREE.LineBasicMaterial({
+                        color: idx % 2 === 0 ? 0x6366f1 : 0x06b6d4,
+                        transparent: true,
+                        opacity: 0.35,
+                        blending: THREE.AdditiveBlending
+                    });
+                    
+                    const lineLoop = new THREE.LineLoop(ringGeometry, ringMaterial);
+                    
+                    lineLoop.rotation.x = Math.random() * Math.PI;
+                    lineLoop.rotation.y = Math.random() * Math.PI;
+                    globeGroup.add(lineLoop);
+                    ringsArray.push(lineLoop);
+                }
+ 
+                // Interaction variables
+                let mouseX = 0, mouseY = 0;
+                let targetX = 0, targetY = 0;
+                let isDragging = false;
+                let previousMousePosition = { x: 0, y: 0 };
+ 
+                window.addEventListener('mousemove', (e) => {
+                    const rect = container.getBoundingClientRect();
+                    const x = e.clientX - rect.left - width / 2;
+                    const y = e.clientY - rect.top - height / 2;
+                    if (Math.abs(x) < 400 && Math.abs(y) < 400) {
+                        targetX = x * 0.0005;
+                        targetY = y * 0.0005;
+                    }
+                });
+ 
+                container.addEventListener('mousedown', () => { isDragging = true; });
+                window.addEventListener('mouseup', () => { isDragging = false; });
+                container.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        const deltaMove = {
+                            x: e.offsetX - previousMousePosition.x,
+                            y: e.offsetY - previousMousePosition.y
+                        };
+                        globeGroup.rotation.y += deltaMove.x * 0.005;
+                        globeGroup.rotation.x += deltaMove.y * 0.005;
+                    }
+                    previousMousePosition = { x: e.offsetX, y: e.offsetY };
+                });
+ 
+                container.addEventListener('touchstart', (e) => {
+                    if(e.touches.length === 1) {
+                        isDragging = true;
+                        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    }
+                }, { passive: true });
+                window.addEventListener('touchend', () => { isDragging = false; });
+                container.addEventListener('touchmove', (e) => {
+                    if (isDragging && e.touches.length === 1) {
+                        const deltaMove = {
+                            x: e.touches[0].clientX - previousMousePosition.x,
+                            y: e.touches[0].clientY - previousMousePosition.y
+                        };
+                        globeGroup.rotation.y += deltaMove.x * 0.005;
+                        globeGroup.rotation.x += deltaMove.y * 0.005;
+                        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    }
+                }, { passive: true });
+ 
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        const w = entry.contentRect.width;
+                        const h = entry.contentRect.height || 450;
+                        camera.aspect = w / h;
+                        camera.updateProjectionMatrix();
+                        renderer.setSize(w, h);
+                    }
+                });
+                resizeObserver.observe(container);
+ 
+                function animate() {
+                    requestAnimationFrame(animate);
+ 
+                    if (!isDragging) {
+                        globeGroup.rotation.y += 0.0015;
+                        globeGroup.rotation.x += 0.0005;
+ 
+                        globeGroup.rotation.y += (targetX - globeGroup.rotation.y) * 0.05;
+                        globeGroup.rotation.x += (targetY - globeGroup.rotation.x) * 0.05;
+                    }
+ 
+                    ringsArray.forEach((ring, index) => {
+                        const speedFactor = (index + 1) * 0.002;
+                        ring.rotation.z += index % 2 === 0 ? speedFactor : -speedFactor;
+                    });
+ 
+                    renderer.render(scene, camera);
+                }
+                animate();
+            }
         });
-
+ 
         // Efeitos Visuais (Barra de Progresso e Partículas)
         const scrollProgress = document.getElementById('scroll-progress');
         window.addEventListener('scroll', () => {
@@ -824,7 +1257,7 @@ projects.forEach((project, index) => {
             const progress = (window.scrollY / totalHeight) * 100;
             scrollProgress.style.width = `${progress}%`;
         });
-
+ 
         const particlesContainer = document.getElementById('particles-container');
         const symbols = ['0', '1', '{ }', '</>', 'π', 'AI', 'f(x)', '[ ]', 'Data'];
         for (let i = 0; i < 20; i++) {
@@ -837,14 +1270,46 @@ projects.forEach((project, index) => {
             span.dataset.speed = Math.random() * 0.5 + 0.1;
             particlesContainer.appendChild(span);
         }
-
+ 
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
+            const windowHeight = window.innerHeight;
+ 
+            // Parallax de Partículas
             document.querySelectorAll('.data-particle').forEach(particle => {
                 const speed = parseFloat(particle.dataset.speed);
                 particle.style.transform = `translateY(${scrollY * speed}px)`;
             });
+ 
+            // Parallax de Mídias dos Projetos
+            document.querySelectorAll('.parallax-media').forEach(media => {
+                const rect = media.getBoundingClientRect();
+                if (rect.top < windowHeight && rect.bottom > 0) {
+                    const elementCenter = rect.top + rect.height / 2;
+                    const windowCenter = windowHeight / 2;
+                    const distance = elementCenter - windowCenter;
+                    const speed = 0.08;
+                    const yOffset = distance * speed;
+                    media.style.transform = `translateY(${yOffset}px) scale(1.15)`;
+                }
+            });
         });
+
+        // --- PRELOADER INTRO SCREEN ---
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+            const fadeOutLoader = () => {
+                preloader.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    preloader.remove();
+                }, 800);
+            };
+            window.addEventListener('load', () => {
+                setTimeout(fadeOutLoader, 2000);
+            });
+            setTimeout(fadeOutLoader, 4000);
+        }
+
     </script>
 </body>
 </html>
