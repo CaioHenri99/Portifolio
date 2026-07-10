@@ -393,6 +393,137 @@
             animation: fadeIn 1s ease forwards;
         }
 
+        /* --- DOWNLOAD BUTTON WITH ANIMATION --- */
+        .download-container {
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .download-input {
+            display: none;
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 175px;
+            height: 48px;
+            padding: 0 16px;
+            background: rgba(99, 102, 241, 0.08);
+            border: 2.5px solid var(--primary);
+            border-radius: 24px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-circle {
+            width: 26px;
+            height: 26px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+            z-index: 2;
+        }
+
+        .download-icon {
+            width: 13px;
+            height: 13px;
+            color: white;
+            transition: transform 0.4s ease;
+        }
+
+        .download-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            margin-left: 12px;
+            transition: all 0.4s ease;
+            z-index: 2;
+        }
+
+        .download-success-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgb(34, 197, 94);
+            position: absolute;
+            right: -100px;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 2;
+        }
+
+        /* Checked states & Animations */
+        .download-input:checked + .download-btn {
+            animation: installed 0.8s ease 3s forwards;
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .download-input:checked + .download-btn .download-circle {
+            animation: pulse-ring 1s infinite alternate, circleDelete 0.2s ease 2.8s forwards;
+            background: rgb(34, 197, 94);
+        }
+
+        .download-input:checked + .download-btn .download-icon {
+            transform: translateY(2px);
+        }
+
+        .download-input:checked + .download-btn .download-text {
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.4s ease;
+        }
+
+        .download-input:checked + .download-btn .download-success-text {
+            animation: showInstalledMessage 0.6s cubic-bezier(0.16, 1, 0.3, 1) 3s forwards;
+        }
+
+        /* Keyframes */
+        @keyframes installed {
+            100% {
+                width: 150px;
+                border-color: rgb(35, 174, 35);
+                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
+            }
+        }
+
+        @keyframes circleDelete {
+            100% {
+                opacity: 0;
+                visibility: hidden;
+                transform: scale(0);
+            }
+        }
+
+        @keyframes showInstalledMessage {
+            100% {
+                opacity: 1;
+                visibility: visible;
+                right: 42px;
+            }
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+            }
+            70% {
+                transform: scale(1.08);
+                box-shadow: 0 0 0 8px rgba(99, 102, 241, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen relative">
@@ -697,9 +828,21 @@
                         </div>
                      </div>
  
-                    <div class="flex flex-wrap gap-4">
-                        <a href="#" class="px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 btn-glow">Download CV</a>
-                        <a href="#contact" class="px-6 py-3 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-800 hover:text-white transition btn-glow">Entre em Contato</a>
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <label class="download-container">
+                            <input type="checkbox" id="cv-download-checkbox" class="download-input">
+                            <div class="download-btn">
+                                <div class="download-circle">
+                                    <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <polyline points="19 12 12 19 5 12"></polyline>
+                                    </svg>
+                                </div>
+                                <span class="download-text">Download CV</span>
+                                <span class="download-success-text">Baixado!</span>
+                            </div>
+                        </label>
+                        <a href="#contact" class="px-6 py-3 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-800 hover:text-white transition btn-glow h-[48px] flex items-center justify-center">Entre em Contato</a>
                     </div>
                 </div>
             </div>
@@ -1310,6 +1453,26 @@
             setTimeout(fadeOutLoader, 4000);
         }
 
+        // --- ANIMATED CV DOWNLOAD CONTROLLER ---
+        const cvCheckbox = document.getElementById('cv-download-checkbox');
+        if (cvCheckbox) {
+            cvCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    setTimeout(() => {
+                        const link = document.createElement('a');
+                        link.href = './Curriculo.pdf';
+                        link.download = 'Curriculo_Caio_Henrique.pdf';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }, 2800);
+
+                    setTimeout(() => {
+                        this.checked = false;
+                    }, 5500);
+                }
+            });
+        }
     </script>
 </body>
 </html>
