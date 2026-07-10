@@ -57,7 +57,9 @@ Agente autônomo baseado em Aprendizado por Reforço (DQN - Deep Q-Learning) pro
 ### 3. **Previsão do Índice DST (Tempestades Geomagnéticas)**
 Modelo de aprendizado profundo de séries temporais para predição do índice Dst (Disturbance Storm Time), antecipando flutuações magnéticas e tempestades solares extremas que afetam satélites e redes elétricas na Terra.
 - *Techs:* Python, LSTM, Pandas, TensorFlow, Matplotlib.
-- *Destaque:* Desenvolvido no VII Desafio em Ciência de Dados da PUC Goiás.
+### 4. **Antigravity - Redesign com Agente AI**
+Redesign completo deste portfólio web executado de forma colaborativa homem-máquina em tempo real com o agente AI coder Antigravity. O projeto envolveu repensar a experiência do usuário com interfaces glassmorphic e construir elementos 3D WebGL de forma nativa e interativa.
+- *Techs:* Three.js (WebGL), JavaScript (ES6), CSS Glassmorphism, Git / GitHub Pages.
 
 ---
 
