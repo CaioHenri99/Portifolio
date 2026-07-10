@@ -24,7 +24,7 @@ Olá! Sou o **Caio Henrique**, desenvolvedor de software e sistemas com foco em 
 - 🎓 Graduando em **Ciência de Dados e Inteligência Artificial**.
 - 💻 **Desenvolvedor de Software e Sistemas**, com experiência prática no desenvolvimento de soluções end-to-end (da modelagem de dados à interface visual).
 - 🧠 Entusiasta de Deep Learning, Séries Temporais, Agentes de Aprendizado por Reforço e integrações de IA Generativa.
-- ⚽ Produtor de conteúdo analítico e esportivo no **Recanto FC** (@orecantofc).
+- ⚽ Produtor de conteúdo analítico e esportivo no **Vision Game** (@visiongame_) e crio conteúdo informativo sobre tecnologia no @caioandrade.ai.
 
 ---
 
@@ -70,30 +70,6 @@ Redesign completo deste portfólio web executado de forma colaborativa homem-má
 - **Desenvolvimento de MVP** – Criação de protótipos rápidos integrando Firebase.
 - **Análise de Dados com Microsoft Excel** – Estatística descritiva e modelagem de planilhas.
 - **Python Aplicado** – Desenvolvimento de scripts e automação com foco em dados.
-
----
-
-## 🔧 Executando o Portfólio Localmente
-
-Para visualizar o portfólio completo na sua máquina local com suporte total à renderização interativa 3D (WebGL/Three.js e Modelos .glb), você precisa rodar um servidor HTTP local para evitar restrições de CORS do navegador:
-
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/CaioHenri99/Portifolio.git
-   ```
-2. Acesse a pasta do projeto:
-   ```bash
-   cd Portifolio
-   ```
-3. Inicialize um servidor web simples (ex: usando Node/npm ou Python):
-   ```bash
-   # Opção 1: Node.js (npx)
-   npx http-server -p 8080
-   
-   # Opção 2: Python 3
-   python -m http.server 8080
-   ```
-4. Abra o navegador em: [http://localhost:8080](http://localhost:8080)
 
 ---
 
