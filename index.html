@@ -8,20 +8,29 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/math/MeshSurfaceSampler.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrambleTextPlugin.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600&display=swap');
 
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-glow: rgba(99, 102, 241, 0.2);
-            --dark: #090d16;
-            --light: #030712;
-            --neon-purple: #a855f7;
-            --neon-cyan: #06b6d4;
+            --primary: #ffffff;
+            --primary-dark: #a3a3a3;
+            --accent: #6366f1; /* único pixel de marca: detalhes mínimos */
+            --dark: #000000;
+            --light: #000000;
+            --ink-90: rgba(255, 255, 255, 0.9);
+            --ink-60: rgba(255, 255, 255, 0.6);
+            --ink-40: rgba(255, 255, 255, 0.4);
+            --ink-20: rgba(255, 255, 255, 0.2);
+            --ink-10: rgba(255, 255, 255, 0.1);
+            --ink-05: rgba(255, 255, 255, 0.05);
+            --ink-03: rgba(255, 255, 255, 0.03);
         }
 
         html {
@@ -31,27 +40,37 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            color: #f1f5f9;
-            background-color: var(--light);
+            color: #e5e7eb;
+            background-color: #000;
             transition: all 0.3s ease;
             overflow-x: hidden;
         }
 
         .mono { font-family: 'IBM Plex Mono', monospace; }
 
+        /* --- Ruído de filme sobre tudo --- */
+        .noise-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            pointer-events: none;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
         /* --- Scrollbar Personalizada Global --- */
         ::-webkit-scrollbar {
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.3);
+            background: #000;
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.4);
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.7);
+            background: rgba(255, 255, 255, 0.4);
         }
 
         /* --- Scrollbar Personalizada para Desktop (Projetos) --- */
@@ -88,26 +107,26 @@
         }
 
         .text-gradient-animate {
-            background: linear-gradient(to right, #6366f1, #d946ef, #06b6d4, #6366f1);
+            background: linear-gradient(to right, #ffffff, #6b7280, #ffffff);
             background-size: 300% auto;
             color: transparent;
             background-clip: text;
             -webkit-background-clip: text;
-            animation: shine 4s linear infinite;
+            animation: shine 5s linear infinite;
         }
         @keyframes shine { to { background-position: 300% center; } }
 
         /* Barra de Progresso no Topo */
         #scroll-progress {
-            position: fixed; top: 0; left: 0; height: 4px;
-            background: linear-gradient(to right, #6366f1, #a855f7, #06b6d4);
+            position: fixed; top: 0; left: 0; height: 2px;
+            background: rgba(255, 255, 255, 0.7);
             z-index: 100; width: 0%; transition: width 0.1s ease-out;
         }
 
         /* Partículas */
         .data-particle {
             position: absolute;
-            color: rgba(99, 102, 241, 0.18);
+            color: rgba(255, 255, 255, 0.08);
             font-family: 'IBM Plex Mono', monospace;
             font-weight: bold;
             pointer-events: none;
@@ -115,19 +134,16 @@
             user-select: none;
         }
 
-        /* --- Glassmorphism --- */
+        /* --- Painéis de sistema (ex-glassmorphism) --- */
         .glass-card {
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2px !important;
+            transition: border-color 0.35s ease, background-color 0.35s ease;
         }
         .glass-card:hover {
-            border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.15);
-            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         /* --- Efeito de Reveal no Scroll --- */
@@ -151,15 +167,15 @@
             transform: translate(0) scale(1);
         }
 
-        /* --- Ambient Glows --- */
+        /* --- Ambient Glows (monocromático: luz branca difusa, bem sutil) --- */
         .ambient-glow {
             position: absolute;
             border-radius: 50%;
             filter: blur(120px);
             pointer-events: none;
-            opacity: 0.5;
+            opacity: 0.16;
             z-index: -10;
-            mix-blend-mode: plus-lighter;
+            background: rgba(255, 255, 255, 0.35) !important;
         }
 
         /* --- Hover Glow do Botão --- */
@@ -192,38 +208,136 @@
             transition: transform 0.1s ease-out;
         }
 
-        /* --- Tipografia Display --- */
-        h1, h2, h3, .font-display {
-            font-family: 'Space Grotesk', 'Inter', sans-serif;
-            letter-spacing: -0.02em;
+        /* --- Tipografia Display (condensada, caixa alta, estética de sistema) --- */
+        h1, h2, .font-display {
+            font-family: 'Oswald', 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 500;
+        }
+        h3, h4 {
+            font-family: 'Oswald', 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 400;
         }
 
-        /* --- Grid Tech de Fundo (máscara segue o mouse) --- */
+        /* --- Eyebrow / etiquetas de sistema --- */
+        .sys-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--ink-40);
+        }
+        .term-line {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            color: var(--ink-40);
+        }
+        .term-line::before {
+            content: '> ';
+            color: var(--ink-60);
+        }
+
+        /* --- Botão de sistema (borda branca, inverte no hover) --- */
+        .btn-sys {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #fff;
+            background: transparent;
+            border: 1px solid var(--ink-40);
+            border-radius: 2px;
+            padding: 0.85rem 1.6rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+        }
+        .btn-sys:hover {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+        .btn-sys--solid {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+        .btn-sys--solid:hover {
+            background: transparent;
+            color: #fff;
+            border-color: var(--ink-60);
+        }
+
+        /* --- Barras de status (developer stats) --- */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--ink-60);
+        }
+        .stat-bar {
+            height: 3px;
+            background: var(--ink-10);
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .stat-bar > span {
+            display: block;
+            height: 100%;
+            background: var(--ink-90);
+            width: 0;
+        }
+
+        /* --- Texto fantasma (eco de baixa opacidade) --- */
+        .ghost-echo {
+            position: absolute;
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--ink-05);
+            letter-spacing: 0.02em;
+            pointer-events: none;
+            user-select: none;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        /* --- Malha de fundo (fio branco sutil, reforça perto do mouse) --- */
         .tech-grid {
             position: fixed;
             inset: 0;
             z-index: -8;
             pointer-events: none;
             background-image:
-                linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
-            background-size: 48px 48px;
-            -webkit-mask-image: radial-gradient(620px circle at var(--mx, 50%) var(--my, 30%), rgba(0,0,0,0.9), transparent 72%);
-            mask-image: radial-gradient(620px circle at var(--mx, 50%) var(--my, 30%), rgba(0,0,0,0.9), transparent 72%);
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 44px 44px;
+            -webkit-mask-image: radial-gradient(720px circle at var(--mx, 50%) var(--my, 30%), rgba(0,0,0,1), rgba(0,0,0,0.35) 78%);
+            mask-image: radial-gradient(720px circle at var(--mx, 50%) var(--my, 30%), rgba(0,0,0,1), rgba(0,0,0,0.35) 78%);
         }
 
-        /* --- Cards de Projeto (janela de browser + spotlight + tilt) --- */
+        /* --- Cards de Projeto (painel de sistema monocromático) --- */
         .project-card {
             position: relative;
             display: flex;
             flex-direction: column;
-            border-radius: 16px;
-            background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             overflow: hidden;
-            transition: border-color 0.35s ease, box-shadow 0.45s ease;
+            transition: border-color 0.35s ease, background-color 0.35s ease;
             will-change: transform;
         }
         .project-card::before {
@@ -231,7 +345,7 @@
             position: absolute;
             inset: 0;
             border-radius: inherit;
-            background: radial-gradient(420px circle at var(--x, 50%) var(--y, 50%), rgba(99, 102, 241, 0.18), transparent 45%);
+            background: radial-gradient(420px circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.10), transparent 45%);
             opacity: 0;
             transition: opacity 0.4s ease;
             pointer-events: none;
@@ -239,16 +353,16 @@
         }
         .project-card:hover::before { opacity: 1; }
         .project-card:hover {
-            border-color: rgba(99, 102, 241, 0.45);
-            box-shadow: 0 20px 50px -12px rgba(99, 102, 241, 0.28);
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.05);
         }
         .project-card .card-topbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0.65rem 0.9rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            background: rgba(2, 6, 23, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.6);
         }
         .project-card .card-media {
             height: 185px;
@@ -259,16 +373,20 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(to top, rgba(15, 23, 42, 0.55), transparent 55%);
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent 55%);
         }
         .project-card .card-media img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            filter: grayscale(1) contrast(1.05);
             transform: scale(1.03);
-            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
         }
-        .project-card:hover .card-media img { transform: scale(1.09); }
+        .project-card:hover .card-media img {
+            transform: scale(1.09);
+            filter: grayscale(0);
+        }
 
         .align {
             display: flex;
@@ -281,16 +399,131 @@
             border-radius: 50%;
             box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.28);
         }
-        .red { background-color: #ff605c; }
-        .yellow { background-color: #ffbd44; }
-        .green { background-color: #00ca4e; }
+        .red { background-color: rgba(255, 255, 255, 0.5); }
+        .yellow { background-color: rgba(255, 255, 255, 0.3); }
+        .green { background-color: rgba(255, 255, 255, 0.15); }
 
         /* --- Botões magnéticos --- */
         .magnetic { will-change: transform; }
 
         /* --- Scrollspy: seção ativa destacada no painel do menu --- */
-        .menu-link.active { color: #fff; background: rgba(99, 102, 241, 0.10); }
-        .menu-link.active .link-num { color: #a5b4fc; }
+        .menu-link.active { color: #fff; background: rgba(255, 255, 255, 0.08); }
+        .menu-link.active .link-num { color: var(--accent); }
+
+        /* --- HUD fixo (cantos, ticker e barra inferior) --- */
+        .hud-corner {
+            position: fixed;
+            top: 1.1rem;
+            left: 1.4rem;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .hud-corner .divider {
+            width: 1px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .ticker-wrap {
+            position: fixed;
+            top: 1.35rem;
+            right: 0;
+            width: min(46vw, 640px);
+            z-index: 50;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 100%);
+            mask-image: linear-gradient(to right, transparent, #000 12%, #000 100%);
+        }
+        .ticker {
+            display: flex;
+            width: max-content;
+            gap: 2.2rem;
+            animation: ticker-scroll 26s linear infinite;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.45);
+            white-space: nowrap;
+        }
+        .ticker strong {
+            font-family: 'Oswald', sans-serif;
+            font-size: 13px;
+            letter-spacing: 0.14em;
+            color: #fff;
+            font-weight: 500;
+        }
+        .ticker .tk-box {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1px 7px;
+            color: rgba(255, 255, 255, 0.55);
+        }
+        @keyframes ticker-scroll {
+            to { transform: translateX(-50%); }
+        }
+        .hud-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0 1.4rem 1.1rem;
+            pointer-events: none;
+        }
+        .hud-bottom > * { pointer-events: auto; }
+        .hud-bottom .hud-meta {
+            display: flex;
+            gap: 2.5rem;
+        }
+        .hud-meta h5 {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.45);
+            margin-bottom: 4px;
+        }
+        .hud-meta p {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: #fff;
+        }
+        #logo-menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(5, 5, 5, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 2px;
+            padding: 0.65rem 1.1rem;
+            cursor: pointer;
+            transition: border-color 0.25s ease, background-color 0.25s ease;
+        }
+        #logo-menu-btn:hover { border-color: #fff; background: rgba(255, 255, 255, 0.06); }
+        #logo-menu-btn .sec-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.45);
+        }
+        #logo-menu-btn .sec-name {
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-size: 15px;
+            color: #fff;
+            font-weight: 500;
+        }
+        @media (max-width: 768px) {
+            .ticker-wrap { display: none; }
+            .hud-meta { display: none !important; }
+            .hud-bottom { justify-content: flex-end; }
+        }
 
         /* --- Menu de Navegação pela Logo (island pattern) --- */
         .menu-overlay {
@@ -302,52 +535,52 @@
         .menu-backdrop {
             position: absolute;
             inset: 0;
-            background: rgba(3, 7, 18, 0.78);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
             opacity: 0;
         }
         .menu-panel {
             position: absolute;
-            top: 5.5rem;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 6.5rem;
+            right: 1.5rem;
             width: 90vw;
-            max-width: 400px;
-            background: rgba(15, 23, 42, 0.92);
+            max-width: 380px;
+            background: rgba(5, 5, 5, 0.96);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
             padding: 0.375rem;
-            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(99, 102, 241, 0.08);
+            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.8);
             visibility: hidden;
         }
         .menu-link {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.85rem 1.05rem;
-            border-radius: 10px;
+            padding: 0.9rem 1.05rem;
+            border-radius: 2px;
             text-decoration: none;
-            color: #cbd5e1;
-            font-weight: 500;
-            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-weight: 400;
+            font-size: 0.95rem;
             line-height: 1;
-            transition: color 0.2s ease, background-color 0.2s ease;
+            transition: color 0.2s ease, background-color 0.2s ease, padding-left 0.25s ease;
         }
-        .menu-link + .menu-link { border-top: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0; }
-        .menu-link:first-child { border-radius: 12px 12px 0 0; }
-        .menu-link:last-child { border-radius: 0 0 12px 12px; }
-        .menu-link:hover { color: #fff; background: rgba(99, 102, 241, 0.14); }
-        .menu-link:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: 10px; }
+        .menu-link + .menu-link { border-top: 1px solid rgba(255, 255, 255, 0.07); }
+        .menu-link:hover { color: #fff; background: rgba(255, 255, 255, 0.06); padding-left: 1.4rem; }
+        .menu-link:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
         .link-num {
             font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.68rem;
-            color: rgba(129, 140, 248, 0.5);
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.25);
             transition: color 0.15s;
         }
-        .menu-link:hover .link-num { color: #a5b4fc; }
+        .menu-link:hover .link-num { color: rgba(255, 255, 255, 0.7); }
 
         /* Fallback do menu sem GSAP */
         .menu-overlay.menu-css .menu-backdrop { transition: opacity 0.3s ease; }
@@ -415,9 +648,9 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            color: #cbd5e1;
-            background-color: #1e293b;
-            border: 1px solid rgba(255,255,255,0.05);
+            color: #d1d5db;
+            background-color: #101010;
+            border: 1px solid rgba(255,255,255,0.15);
             transition: all 0.3s ease-in-out;
         }
         .example-2 .icon-content a:hover {
@@ -719,23 +952,24 @@
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
             <defs>
                 <linearGradient id="curtain-grad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stop-color="#6366f1"/>
-                    <stop offset="50%" stop-color="#a855f7"/>
-                    <stop offset="100%" stop-color="#06b6d4"/>
+                    <stop offset="0%" stop-color="#ffffff"/>
+                    <stop offset="50%" stop-color="#9ca3af"/>
+                    <stop offset="100%" stop-color="#ffffff"/>
                 </linearGradient>
             </defs>
             <path id="curtain-accent" fill="url(#curtain-grad)" d="M 0 0 V 100 Q 50 100 100 100 V 0 z"></path>
-            <path id="curtain-path" fill="#020617" d="M 0 0 V 100 Q 50 100 100 100 V 0 z"></path>
+            <path id="curtain-path" fill="#050505" d="M 0 0 V 100 Q 50 100 100 100 V 0 z"></path>
         </svg>
         <div class="intro-content relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-            <img src="src/img/logo-lg.webp" alt="" class="h-32 md:h-44 w-auto mb-8 opacity-0 animate-fade-in-up">
-            <h2 class="text-4xl md:text-6xl font-bold mono text-white tracking-widest opacity-0 animate-fade-in-up" style="animation-delay: 0.15s;">
+            <p class="sys-label mb-8 opacity-0 animate-fade-in">system_ready</p>
+            <img src="src/img/logo-lg.webp" alt="" class="h-32 md:h-44 w-auto mb-8 opacity-0 animate-fade-in-up" style="filter: grayscale(1);">
+            <h2 class="text-6xl md:text-8xl text-white opacity-0 animate-fade-in-up" style="animation-delay: 0.15s;">
                 Infinit<span class="text-gradient-animate">_Dev</span>
             </h2>
-            <p class="text-sm md:text-base text-slate-400 mt-4 tracking-wide opacity-0 animate-fade-in" style="animation-delay: 0.5s;">
+            <p class="mono text-[11px] md:text-xs uppercase tracking-[0.3em] text-white/40 mt-5 opacity-0 animate-fade-in" style="animation-delay: 0.5s;">
                 Ciência de Dados · Inteligência Artificial · Automação
             </p>
-            <p class="intro-hint mono text-[11px] md:text-xs text-indigo-400 tracking-[0.3em] mt-10 opacity-0">
+            <p class="intro-hint mono text-[11px] md:text-xs text-white/60 tracking-[0.3em] mt-12 opacity-0">
                 [ CLIQUE PARA ENTRAR ]
             </p>
         </div>
@@ -755,21 +989,63 @@
     <div id="scroll-progress"></div>
     <div id="particles-container" class="absolute inset-0 overflow-hidden h-full w-full pointer-events-none"></div>
 
-    <nav class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300" id="navbar">
-        <div class="absolute inset-0 bg-slate-950/75 backdrop-blur-md border border-slate-800/60 rounded-full shadow-lg"></div>
+    <div id="navbar">
+        <!-- Canto superior esquerdo: identidade -->
+        <div class="hud-corner">
+            <img src="src/img/logo.webp" alt="Logo Infinit_Dev" class="h-9 w-auto object-contain">
+            <div class="mono text-[12px] leading-snug text-white font-semibold">Caio<br>Henrique</div>
+            <div class="divider"></div>
+            <div class="mono text-[12px] leading-snug text-white/50">Portfólio<br>2026</div>
+        </div>
 
-        <div class="relative px-5">
-            <div class="flex items-center py-2">
-                <button id="logo-menu-btn" type="button" aria-expanded="false" aria-controls="nav-overlay" aria-label="Abrir menu de navegação" class="group flex items-center space-x-3 bg-transparent border-0 p-0 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-full">
-                    <img src="src/img/logo.webp" alt="" class="h-8 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-110">
-                    <div class="text-base md:text-lg font-bold mono text-white">Infinit<span class="text-gradient-animate">_Dev</span></div>
-                    <svg id="menu-caret" class="w-4 h-4 text-slate-400 transition-colors group-hover:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </button>
+        <!-- Ticker superior direito -->
+        <div class="ticker-wrap" aria-hidden="true">
+            <div class="ticker">
+                <span><strong>Python / IA</strong></span>
+                <span class="tk-box">core_id</span>
+                <span><strong>Infinit_Dev</strong></span>
+                <span class="tk-box">availability</span>
+                <span><strong>Open</strong></span>
+                <span class="tk-box">field</span>
+                <span><strong>Data Science</strong></span>
+                <span class="tk-box">rendering</span>
+                <span><strong>ML / GenAI</strong></span>
+                <span><strong>Python / IA</strong></span>
+                <span class="tk-box">core_id</span>
+                <span><strong>Infinit_Dev</strong></span>
+                <span class="tk-box">availability</span>
+                <span><strong>Open</strong></span>
+                <span class="tk-box">field</span>
+                <span><strong>Data Science</strong></span>
+                <span class="tk-box">rendering</span>
+                <span><strong>ML / GenAI</strong></span>
             </div>
         </div>
-    </nav>
+
+        <!-- Barra inferior: contato, hora local e botão do menu -->
+        <div class="hud-bottom">
+            <div class="hud-meta">
+                <div>
+                    <h5>Vamos conversar?</h5>
+                    <p>infinit.dev7@gmail.com</p>
+                </div>
+                <div>
+                    <h5>Hora local</h5>
+                    <p>Goiânia <span id="local-time">--:--</span></p>
+                </div>
+            </div>
+            <button id="logo-menu-btn" type="button" aria-expanded="false" aria-controls="nav-overlay" aria-label="Abrir menu de navegação" class="group outline-none focus-visible:ring-2 focus-visible:ring-white">
+                <img src="src/img/logo.webp" alt="" class="h-7 w-auto object-contain transition-transform duration-300 group-hover:scale-110">
+                <span class="sec-num" id="sec-num">[1]</span>
+                <span class="sec-name" id="sec-name">Home</span>
+                <svg id="menu-caret" class="w-4 h-4 text-white/50 transition-colors group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="noise-layer" aria-hidden="true"></div>
 
     <!-- Overlay do Menu de Navegação (abre pela logo) -->
     <div id="nav-overlay" class="menu-overlay" aria-hidden="true">
@@ -777,7 +1053,7 @@
         <nav class="menu-panel" aria-label="Menu de navegação">
             <a href="#home" class="menu-link"><span>Home</span><span class="link-num">01</span></a>
             <a href="#projects" class="menu-link"><span>Projetos</span><span class="link-num">02</span></a>
-            <a href="#skills" class="menu-link"><span>Habilidades</span><span class="link-num">03</span></a>
+            <a href="#skills" class="menu-link"><span>Stacks</span><span class="link-num">03</span></a>
             <a href="#about" class="menu-link"><span>Sobre</span><span class="link-num">04</span></a>
             <a href="#contact" class="menu-link"><span>Contato</span><span class="link-num">05</span></a>
         </nav>
@@ -786,23 +1062,49 @@
     <section id="home" class="relative pt-32 pb-10 md:py-20 px-4 bg-transparent overflow-hidden">
         <div class="max-w-6xl mx-auto">
             <div class="flex flex-col md:flex-row items-center">
-                <div class="md:w-1/2 mb-10 md:mb-0">
-                    <h1 class="hero-item text-3xl md:text-6xl font-bold mb-6 dark:text-white">
+                <div class="md:w-1/2 mb-10 md:mb-0 relative">
+                    <span class="ghost-echo text-[22vw] md:text-[10vw] -top-8 md:-top-14 -left-1" aria-hidden="true">Infinit_Dev</span>
+
+                    <p class="hero-item sys-label mb-5">[ Info_Log ]</p>
+                    <h1 class="hero-item text-5xl md:text-7xl mb-6 text-white leading-none">
                         <span class="typewriter" id="typewriter"></span>
                     </h1>
-                    <p class="hero-item text-lg text-gray-600 mb-8 dark:text-gray-300">
+                    <p class="hero-item mono text-[13px] md:text-sm text-white/50 mb-10 max-w-md leading-relaxed">
                         Soluções inteligentes de Ciência de Dados e Inteligência Artificial para transformar dados em insights valiosos.
                     </p>
-                    <div class="hero-item flex flex-wrap gap-4">
-                        <a href="#projects" class="magnetic px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition btn-glow">Ver projetos</a>
-                        <a href="#contact" class="magnetic px-6 py-3 border-2 border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-600 hover:text-white transition dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-400 dark:hover:text-white dark:hover:border-indigo-400 btn-glow">Contato</a>
+                    <div class="hero-item flex flex-wrap gap-4 mb-14">
+                        <a href="#projects" class="magnetic btn-sys btn-sys--solid">Ver projetos</a>
+                        <a href="#contact" class="magnetic btn-sys">Contato</a>
+                    </div>
+
+                    <!-- Developer Stats -->
+                    <div class="hero-item max-w-sm">
+                        <p class="sys-label mb-3">Developer_Stats</p>
+                        <p class="mono text-[11px] text-white mb-5 tracking-[0.2em] uppercase">
+                            <span class="inline-block w-2 h-2 rounded-full mr-2 align-middle" style="background: var(--accent); box-shadow: 0 0 10px var(--accent);"></span>Disponível
+                        </p>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="stat-row"><span>Projetos_Concluídos</span><span>07+</span></div>
+                                <div class="stat-bar"><span data-bar="72"></span></div>
+                            </div>
+                            <div>
+                                <div class="stat-row"><span>Anos_Experiência</span><span>03+</span></div>
+                                <div class="stat-bar"><span data-bar="45"></span></div>
+                            </div>
+                        </div>
+                        <div class="mt-6 space-y-1.5">
+                            <p class="term-line">stack_ativa: python_tensorflow_gemini</p>
+                            <p class="term-line">disponibilidade: remoto/híbrido</p>
+                            <p class="term-line">status: open_for_offers</p>
+                        </div>
                     </div>
                 </div>
 
                 <div class="hero-globe md:w-1/2 flex justify-center w-full">
                     <div class="relative w-full max-w-2xl aspect-square flex items-center justify-center">
                         <!-- Ambient Glow backing the canvas -->
-                        <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-cyan-500/10 rounded-full filter blur-3xl opacity-60 animate-pulse" style="animation-duration: 8s;"></div>
+                        <div class="absolute inset-0 bg-white/[0.06] rounded-full filter blur-3xl opacity-60 animate-pulse" style="animation-duration: 8s;"></div>
                         
                         <!-- Three.js Canvas container -->
                         <div id="globe-container" class="w-full h-[350px] sm:h-[450px] md:h-[500px] cursor-grab active:cursor-grabbing"></div>
@@ -814,8 +1116,9 @@
 
     <section id="projects" class="py-10 md:py-20 px-4 bg-transparent">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-4 dark:text-white reveal reveal-scale">Projetos Recentes</h2>
-            <p class="text-center text-gray-500 mb-16 dark:text-gray-400 reveal reveal-scale" style="transition-delay: 150ms;">Explore alguns dos trabalhos mais recentes desenvolvidos.</p>
+            <p class="sys-label text-center mb-3 reveal reveal-scale">[ Archive_01 ]</p>
+            <h2 class="text-4xl md:text-5xl text-center mb-4 text-white reveal reveal-scale">Projetos Recentes</h2>
+            <p class="text-center mono text-[11px] uppercase tracking-[0.25em] text-white/40 mb-16 reveal reveal-scale" style="transition-delay: 150ms;">Explore os trabalhos mais recentes desenvolvidos</p>
  
             <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-6">
                 <!-- Injected via JavaScript -->
@@ -844,13 +1147,13 @@
         <div class="glass-card rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-hidden shadow-2xl flex flex-col">
             <div class="flex justify-between items-center p-4 md:p-5 border-b border-slate-800/70">
                 <h3 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
-                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Currículo — Caio Henrique
                 </h3>
                 <div class="flex items-center gap-3">
-                    <a href="src/Curriculo_Caio_Henrique.pdf" download="Curriculo_Caio_Henrique.pdf" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-full transition btn-glow">
+                    <a href="src/Curriculo_Caio_Henrique.pdf" download="Curriculo_Caio_Henrique.pdf" class="btn-sys btn-sys--solid !px-4 !py-2 !text-[11px]">
                         Baixar PDF
                     </a>
                     <button id="close-cv-modal" type="button" class="text-gray-400 hover:text-red-400 transition-colors" aria-label="Fechar visualizador">
@@ -868,60 +1171,73 @@
 
     <section id="skills" class="py-10 md:py-20 px-4 bg-transparent">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-12 dark:text-white reveal reveal-scale">Habilidades Técnicas</h2>
- 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
- 
-                <div class="glass-card p-8 rounded-2xl h-full reveal reveal-left" style="transition-delay: 200ms;">
-                    <h3 class="text-xl font-bold mb-6 dark:text-white flex items-center gap-2">
-                        <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                        Tecnologias
+            <p class="sys-label text-center mb-3 reveal reveal-scale">[ Stack_02 ]</p>
+            <h2 class="text-4xl md:text-5xl text-center mb-12 text-white reveal reveal-scale">Stacks</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <div class="glass-card p-6 md:p-7 rounded-2xl h-full reveal reveal-left" style="transition-delay: 150ms;">
+                    <h3 class="text-lg font-bold mb-6 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        Core
                     </h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">Python</span>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Python</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">Machine Learning</span>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">SQL / SQL Server</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">GenAI</span>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Machine Learning</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">SQL</span>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">GenAI / LLMs</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">Keras</span>
-                        </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">TensorFlow</span>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center col-span-2">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">TensorFlow</span>
                         </div>
                     </div>
                 </div>
- 
-                <div class="glass-card p-8 rounded-2xl h-full reveal reveal-right" style="transition-delay: 200ms;">
-                    <h3 class="text-xl font-bold mb-6 dark:text-white flex items-center gap-2">
-                        <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        Ferramentas & Libs
+
+                <div class="glass-card p-6 md:p-7 rounded-2xl h-full reveal reveal-scale" style="transition-delay: 250ms;">
+                    <h3 class="text-lg font-bold mb-6 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Dados & BI
                     </h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">Pandas</span>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Pandas / NumPy</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">NumPy</span>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Visualização de Dados</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">Google AI Studio</span>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Ferramentas de BI</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">Streamlit</span>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Excel</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">Docker</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 md:p-7 rounded-2xl h-full reveal reveal-right" style="transition-delay: 350ms;">
+                    <h3 class="text-lg font-bold mb-6 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                        Dev & Cloud
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Git/GitHub</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
-                            <span class="font-medium text-sm dark:text-gray-200">Git/Github</span>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Streamlit</span>
+                        </div>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Cloud Computing</span>
+                        </div>
+                        <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
+                            <span class="mono text-xs tracking-wider uppercase text-white/70">Gemini API / AI Studio</span>
                         </div>
                     </div>
                 </div>
@@ -931,32 +1247,32 @@
                 <h3 class="text-xl font-bold mb-6 dark:text-white">Áreas de Atuação</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div class="text-center group hover:transform hover:-translate-y-1 transition duration-300">
-                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-950/60 border border-indigo-800/40 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-500 transition duration-300">
-                            <svg class="w-8 h-8 text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-white/[0.03] border border-white/15 rounded-full flex items-center justify-center group-hover:bg-white group-hover:border-white transition duration-300">
+                            <svg class="w-8 h-8 text-white/60 group-hover:text-black transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
                         </div>
                         <h4 class="font-medium dark:text-gray-200">Análise de Dados</h4>
                     </div>
                     <div class="text-center group hover:transform hover:-translate-y-1 transition duration-300">
-                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-950/60 border border-indigo-800/40 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-500 transition duration-300">
-                            <svg class="w-8 h-8 text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-white/[0.03] border border-white/15 rounded-full flex items-center justify-center group-hover:bg-white group-hover:border-white transition duration-300">
+                            <svg class="w-8 h-8 text-white/60 group-hover:text-black transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                             </svg>
                         </div>
                         <h4 class="font-medium dark:text-gray-200">Business Intelligence</h4>
                     </div>
                     <div class="text-center group hover:transform hover:-translate-y-1 transition duration-300">
-                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-950/60 border border-indigo-800/40 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-500 transition duration-300">
-                            <svg class="w-8 h-8 text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-white/[0.03] border border-white/15 rounded-full flex items-center justify-center group-hover:bg-white group-hover:border-white transition duration-300">
+                            <svg class="w-8 h-8 text-white/60 group-hover:text-black transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                             </svg>
                         </div>
                         <h4 class="font-medium dark:text-gray-200">Agentes de IA</h4>
                     </div>
                     <div class="text-center group hover:transform hover:-translate-y-1 transition duration-300">
-                        <div class="w-16 h-16 mx-auto mb-3 bg-indigo-950/60 border border-indigo-800/40 rounded-full flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-500 transition duration-300">
-                            <svg class="w-8 h-8 text-indigo-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 mx-auto mb-3 bg-white/[0.03] border border-white/15 rounded-full flex items-center justify-center group-hover:bg-white group-hover:border-white transition duration-300">
+                            <svg class="w-8 h-8 text-white/60 group-hover:text-black transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                             </svg>
                         </div>
@@ -973,7 +1289,7 @@
                 <div class="md:w-1/3 flex justify-center relative group w-full reveal reveal-left" style="transition-delay: 150ms;">
                     <div class="relative w-full max-w-sm h-[400px] flex items-end justify-center touch-pan-y">
  
-                        <div class="absolute inset-0 bg-indigo-500/10 dark:bg-indigo-900/20 rounded-full blur-3xl transform scale-75 translate-y-4 -z-10 animate-pulse"></div>
+                        <div class="absolute inset-0 bg-white/[0.06] rounded-full blur-3xl transform scale-75 translate-y-4 -z-10 animate-pulse"></div>
  
                         <model-viewer
                             class="w-full h-full absolute top-0 left-0 z-10"
@@ -992,7 +1308,7 @@
  
                         <div class="z-20 mb-4 px-6 py-2 bg-slate-800 rounded-full shadow-lg border border-slate-700 flex items-center gap-2 transform transition hover:scale-105">
                             <span class="font-bold text-white whitespace-nowrap">Caio Henrique</span>
-                            <svg class="w-5 h-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                            <svg class="w-5 h-5 text-white/70" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
                         </div>
@@ -1000,7 +1316,8 @@
                 </div>
  
                 <div class="md:w-2/3 reveal reveal-right" style="transition-delay: 200ms;">
-                    <h2 class="text-3xl font-bold mb-6 dark:text-white">Sobre Mim</h2>
+                    <p class="sys-label mb-3">[ Perfil_03 ]</p>
+                    <h2 class="text-4xl md:text-5xl mb-6 text-white">Sobre Mim</h2>
                     <p class="text-gray-600 mb-6 dark:text-gray-300 leading-relaxed">
                         Fascinado pelo poder da tecnologia para transformar o mundo e traduzir grandes volumes de dados em decisões inteligentes. Meu foco está em construir soluções que unem Inteligência Artificial, automação e análise estratégica para resolver problemas reais.
                     </p>
@@ -1010,15 +1327,15 @@
                             <h4 class="font-bold mb-4 dark:text-white text-lg">Experiência Profissional</h4>
                             <ul class="space-y-3">
                                 <li class="flex items-start">
-                                    <svg class="w-5 h-5 text-indigo-500 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <svg class="w-5 h-5 text-white/50 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     <span class="text-gray-600 dark:text-gray-300">3+ anos com experiência em IA e Data Science</span>
                                 </li>
                                 <li class="flex items-start">
-                                    <svg class="w-5 h-5 text-indigo-500 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <svg class="w-5 h-5 text-white/50 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     <span class="text-gray-600 dark:text-gray-300">Desenvolvedor de Software e Sistemas</span>
                                 </li>
                                 <li class="flex items-start">
-                                    <svg class="w-5 h-5 text-indigo-500 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <svg class="w-5 h-5 text-white/50 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     <span class="text-gray-600 dark:text-gray-300">Graduação em Ciência de Dados e IA</span>
                                 </li>
                             </ul>
@@ -1028,19 +1345,19 @@
                             <h4 class="font-bold mb-4 dark:text-white text-lg">Projetos Pessoais</h4>
                             <ul class="space-y-3">
                                 <li class="flex items-start">
-                                    <svg class="w-5 h-5 text-indigo-500 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <svg class="w-5 h-5 text-white/50 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     <span class="text-gray-600 dark:text-gray-300">Mapeamento de Chamadas de TV</span>
                                 </li>
                                 <li class="flex items-start">
-                                    <svg class="w-5 h-5 text-indigo-500 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <svg class="w-5 h-5 text-white/50 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     <span class="text-gray-600 dark:text-gray-300">Previsão de Vendas (Kaggle)</span>
                                 </li>
                                 <li class="flex items-start">
-                                    <svg class="w-5 h-5 text-indigo-500 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <svg class="w-5 h-5 text-white/50 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     <span class="text-gray-600 dark:text-gray-300">Velo - Gestão Financeira com IA</span>
                                 </li>
                                 <li class="flex items-start">
-                                    <svg class="w-5 h-5 text-indigo-500 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <svg class="w-5 h-5 text-white/50 mt-1 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     <span class="text-gray-600 dark:text-gray-300">Sistema de Estudo Universitário com LLM</span>
                                 </li>
                             </ul>
@@ -1062,14 +1379,14 @@
                                 <p class="title">Baixado!</p>
                             </label>
                         </div>
-                        <button id="view-cv-btn" type="button" class="magnetic px-6 py-3 border-2 border-indigo-500/70 text-indigo-300 rounded-3xl hover:bg-indigo-600/20 hover:text-white transition btn-glow h-[48px] flex items-center justify-center gap-2">
+                        <button id="view-cv-btn" type="button" class="magnetic btn-sys h-[48px]">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
-                            Visualizar CV
+                            <span>Visualizar CV</span>
                         </button>
-                        <a href="#contact" class="magnetic px-6 py-3 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-800 hover:text-white transition btn-glow h-[48px] flex items-center justify-center">Entre em Contato</a>
+                        <a href="#contact" class="magnetic btn-sys h-[48px]">Entre em Contato</a>
                     </div>
                 </div>
             </div>
@@ -1078,13 +1395,14 @@
 
     <section id="contact" class="py-10 md:py-20 px-4 bg-transparent">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-12 dark:text-white reveal reveal-scale">Entre em Contato</h2>
+            <p class="sys-label text-center mb-3 reveal reveal-scale">[ Comms_04 ]</p>
+            <h2 class="text-4xl md:text-5xl text-center mb-12 text-white reveal reveal-scale">Entre em Contato</h2>
             <div class="max-w-3xl mx-auto">
                 <div class="glass-card p-6 md:p-10 rounded-2xl reveal reveal-scale" style="transition-delay: 150ms;">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                         <div class="flex items-start">
                             <div class="mr-4 mt-1">
-                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                                 </svg>
                             </div>
@@ -1095,7 +1413,7 @@
                         </div>
                         <div class="flex items-start">
                             <div class="mr-4 mt-1">
-                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                 </svg>
                             </div>
@@ -1106,7 +1424,7 @@
                         </div>
                         <div class="flex items-start">
                             <div class="mr-4 mt-1">
-                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
@@ -1118,7 +1436,7 @@
                         </div>
                         <div class="flex items-start">
                             <div class="mr-4 mt-1">
-                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                                 </svg>
                             </div>
@@ -1165,17 +1483,17 @@
         </div>
     </section>
 
-    <footer class="border-t border-slate-900/60 py-6 px-4 bg-transparent">
+    <footer class="border-t border-white/10 pt-6 pb-28 px-4 bg-transparent">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-2">
                 <div class="text-lg font-bold mono text-white">Infinit<span class="text-gradient-animate">_Dev</span></div>
-                <div class="text-sm text-slate-500">| © 2026. Todos os direitos reservados.</div>
+                <div class="mono text-[10px] uppercase tracking-widest text-white/30">| © 2026. Todos os direitos reservados.</div>
             </div>
- 
-            <div class="flex flex-wrap gap-x-6 gap-y-2 justify-center text-sm text-slate-400">
+
+            <div class="flex flex-wrap gap-x-6 gap-y-2 justify-center mono text-[10px] uppercase tracking-widest text-white/40">
                 <a href="#home" class="hover:text-white transition">Home</a>
                 <a href="#projects" class="hover:text-white transition">Projetos</a>
-                <a href="#skills" class="hover:text-white transition">Habilidades</a>
+                <a href="#skills" class="hover:text-white transition">Stacks</a>
                 <a href="#about" class="hover:text-white transition">Sobre</a>
                 <a href="#contact" class="hover:text-white transition">Contato</a>
             </div>
@@ -1248,12 +1566,12 @@
                         <p class="text-[13px] text-slate-400 line-clamp-3 mb-4 leading-relaxed">${project.description}</p>
                         <div class="flex flex-wrap gap-1.5 mb-5">
                             ${project.technologies.slice(0, 3).map(tech => `
-                                <span class="px-2 py-0.5 bg-slate-900/70 text-indigo-300 text-[10px] font-semibold rounded border border-indigo-900/50">
+                                <span class="px-2 py-0.5 bg-white/5 text-white/60 text-[10px] mono uppercase tracking-wider rounded-[2px] border border-white/10">
                                     ${tech}
                                 </span>
                             `).join('')}
                         </div>
-                        <button class="view-details-dynamic magnetic mt-auto w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow transition-all btn-glow" data-index="${index}">
+                        <button class="view-details-dynamic magnetic btn-sys mt-auto w-full !py-2.5 !text-[11px]" data-index="${index}">
                             Ver Detalhes
                         </button>
                     </div>
@@ -1345,13 +1663,13 @@
  
                             <div class="bg-slate-900/50 border border-slate-700/50 p-5 rounded-xl">
                                 <h5 class="font-bold mb-3 dark:text-white flex items-center">
-                                    <svg class="w-5 h-5 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    <svg class="w-5 h-5 mr-2 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                     Recursos Principais
                                 </h5>
                                 <ul class="space-y-2">
                                     ${project.features.map(feature => `
                                         <li class="flex items-start text-sm text-slate-300">
-                                            <span class="mr-2 text-indigo-400">•</span> ${feature}
+                                            <span class="mr-2 text-white/50 mono">></span> ${feature}
                                         </li>
                                     `).join('')}
                                 </ul>
@@ -1360,7 +1678,7 @@
                             <div>
                                 <h5 class="font-bold mb-3 dark:text-white">Stack Tecnológico</h5>
                                 <div class="flex flex-wrap gap-2">
-                                    ${project.technologies.map(tech => `<span class="px-3 py-1 bg-indigo-950/60 text-indigo-300 text-xs rounded-full border border-indigo-900/60">${tech}</span>`).join('')}
+                                    ${project.technologies.map(tech => `<span class="px-3 py-1 bg-white/5 text-white/60 text-[11px] mono uppercase tracking-wider rounded-[2px] border border-white/10">${tech}</span>`).join('')}
                                 </div>
                                 <div class="mt-6">
                                     <img src="${project.image}" alt="${project.title}" class="w-full rounded-lg shadow-md border border-slate-700" />
@@ -1438,149 +1756,191 @@
                     }, 0);
                 });
             });
-            // --- GLOBO HOLOGRÁFICO DE DADOS EM THREE.JS ---
+            // --- CABEÇA DE PARTÍCULAS (avatar CaiKo) COM DISTORÇÃO AO MOUSE ---
             const container = document.getElementById('globe-container');
-            if (container) {
+            if (container && window.THREE) {
+                const reduceFx = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 const width = container.clientWidth;
                 const height = container.clientHeight || 450;
- 
-                // Scene, Camera, Renderer
+                const BASE_ROT_Y = -Math.PI / 2; // frente do modelo aponta para +X; gira para a câmera
+
                 const scene = new THREE.Scene();
                 const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-                camera.position.z = 250;
- 
+                camera.position.z = 305;
+
                 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setSize(width, height);
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
                 container.appendChild(renderer.domElement);
- 
-                // Create Globe Group
-                const globeGroup = new THREE.Group();
-                scene.add(globeGroup);
- 
-                // 1. Globe Particles (Points Geometry)
-                const radius = 80;
-                const segments = 45;
-                const rings = 45;
-                const vertices = [];
-                const colors = [];
-                
-                const colorIndigo = new THREE.Color('#6366f1');
-                const colorCyan = new THREE.Color('#06b6d4');
- 
-                for (let r = 0; r < rings; r++) {
-                    const phi = (r / rings) * Math.PI;
-                    for (let s = 0; s < segments; s++) {
-                        const theta = (s / segments) * Math.PI * 2;
- 
-                        const x = radius * Math.sin(phi) * Math.cos(theta);
-                        const y = radius * Math.cos(phi);
-                        const z = radius * Math.sin(phi) * Math.sin(theta);
- 
-                        vertices.push(x, y, z);
-                        
-                        const mixedColor = colorIndigo.clone().lerp(colorCyan, Math.random());
-                        colors.push(mixedColor.r, mixedColor.g, mixedColor.b);
-                    }
-                }
- 
-                const geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
- 
-                const pMaterial = new THREE.PointsMaterial({
-                    size: 1.5,
-                    vertexColors: true,
+
+                const headGroup = new THREE.Group();
+                scene.add(headGroup);
+
+                // Shader: repulsão radial ao redor do mouse + respiração orgânica
+                const uniforms = {
+                    uTime: { value: 0 },
+                    uMouse: { value: new THREE.Vector3(99999, 99999, 99999) },
+                    uStrength: { value: 0 },
+                    uRadius: { value: 42 },
+                    uSize: { value: 1.35 },
+                    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
+                };
+                const particleMaterial = new THREE.ShaderMaterial({
+                    uniforms: uniforms,
                     transparent: true,
-                    opacity: 0.85,
-                    blending: THREE.AdditiveBlending
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending,
+                    vertexShader: [
+                        'uniform float uTime;',
+                        'uniform vec3 uMouse;',
+                        'uniform float uStrength;',
+                        'uniform float uRadius;',
+                        'uniform float uSize;',
+                        'uniform float uPixelRatio;',
+                        'attribute vec3 aNormal;',
+                        'attribute float aRandom;',
+                        'varying float vAlpha;',
+                        'void main() {',
+                        '    vec3 pos = position;',
+                        '    float d = distance(pos, uMouse);',
+                        '    float force = smoothstep(uRadius, 0.0, d) * uStrength;',
+                        '    vec3 dir = normalize(pos - uMouse + vec3(0.0001));',
+                        '    float wob = sin(uTime * 2.4 + aRandom * 6.2831) * 0.5 + 0.5;',
+                        '    pos += dir * force * (12.0 + aRandom * 14.0);',
+                        '    pos += aNormal * force * wob * 7.0;',
+                        '    pos += aNormal * sin(uTime * 1.1 + aRandom * 6.2831) * 0.35;',
+                        '    vec4 mv = modelViewMatrix * vec4(pos, 1.0);',
+                        '    gl_Position = projectionMatrix * mv;',
+                        '    gl_PointSize = uSize * uPixelRatio * (0.55 + aRandom * 0.9) * (260.0 / -mv.z);',
+                        '    vAlpha = 0.10 + aRandom * 0.35 + force * 0.5;',
+                        '}'
+                    ].join('\n'),
+                    fragmentShader: [
+                        'varying float vAlpha;',
+                        'void main() {',
+                        '    vec2 c = gl_PointCoord - 0.5;',
+                        '    if (dot(c, c) > 0.25) discard;',
+                        '    gl_FragColor = vec4(vec3(1.0), vAlpha);',
+                        '}'
+                    ].join('\n')
                 });
- 
-                const globeParticles = new THREE.Points(geometry, pMaterial);
-                globeGroup.add(globeParticles);
- 
-                // 2. Orbiting Satellite Rings
-                const ringsArray = [];
-                const ringCount = 3;
-                for (let idx = 0; idx < ringCount; idx++) {
-                    const ringRadius = radius + 15 + idx * 8;
-                    const ringGeometry = new THREE.BufferGeometry();
-                    const ringPoints = [];
-                    const ptCount = 64;
-                    for (let pIdx = 0; pIdx <= ptCount; pIdx++) {
-                        const ang = (pIdx / ptCount) * Math.PI * 2;
-                        ringPoints.push(
-                            ringRadius * Math.cos(ang),
-                            0,
-                            ringRadius * Math.sin(ang)
-                        );
-                    }
-                    ringGeometry.setAttribute('position', new THREE.Float32BufferAttribute(ringPoints, 3));
-                    
-                    const ringMaterial = new THREE.LineBasicMaterial({
-                        color: idx % 2 === 0 ? 0x6366f1 : 0x06b6d4,
-                        transparent: true,
-                        opacity: 0.35,
-                        blending: THREE.AdditiveBlending
-                    });
-                    
-                    const lineLoop = new THREE.LineLoop(ringGeometry, ringMaterial);
-                    
-                    lineLoop.rotation.x = Math.random() * Math.PI;
-                    lineLoop.rotation.y = Math.random() * Math.PI;
-                    globeGroup.add(lineLoop);
-                    ringsArray.push(lineLoop);
+
+                function buildPoints(positions, normals) {
+                    const count = positions.length / 3;
+                    const randoms = new Float32Array(count);
+                    for (let i = 0; i < count; i++) randoms[i] = Math.random();
+                    const geometry = new THREE.BufferGeometry();
+                    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                    geometry.setAttribute('aNormal', new THREE.BufferAttribute(normals, 3));
+                    geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1));
+                    headGroup.add(new THREE.Points(geometry, particleMaterial));
                 }
- 
-                // Interaction variables
-                let mouseX = 0, mouseY = 0;
-                let targetX = 0, targetY = 0;
-                let isDragging = false;
-                let previousMousePosition = { x: 0, y: 0 };
- 
-                window.addEventListener('mousemove', (e) => {
+
+                // Fallback: esfera de pontos caso o GLB não carregue
+                function buildFallbackSphere() {
+                    const N = 9000;
+                    const positions = new Float32Array(N * 3);
+                    const normals = new Float32Array(N * 3);
+                    for (let i = 0; i < N; i++) {
+                        const phi = Math.acos(2 * Math.random() - 1);
+                        const theta = Math.random() * Math.PI * 2;
+                        const r = 80;
+                        const x = r * Math.sin(phi) * Math.cos(theta);
+                        const y = r * Math.cos(phi);
+                        const z = r * Math.sin(phi) * Math.sin(theta);
+                        positions.set([x, y, z], i * 3);
+                        normals.set([x / r, y / r, z / r], i * 3);
+                    }
+                    buildPoints(positions, normals);
+                }
+
+                if (THREE.GLTFLoader && THREE.MeshSurfaceSampler) {
+                    const loader = new THREE.GLTFLoader();
+                    if (THREE.DRACOLoader) {
+                        const draco = new THREE.DRACOLoader();
+                        draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+                        loader.setDRACOLoader(draco);
+                    }
+                    loader.load('src/img/CaiKo3D_opt.glb', (gltf) => {
+                        // Amostra pontos na superfície de todas as malhas do avatar
+                        const meshes = [];
+                        gltf.scene.updateMatrixWorld(true);
+                        gltf.scene.traverse(o => { if (o.isMesh) meshes.push(o); });
+                        if (!meshes.length) { buildFallbackSphere(); return; }
+
+                        const TOTAL = 26000;
+                        const positions = new Float32Array(TOTAL * 3);
+                        const normals = new Float32Array(TOTAL * 3);
+                        const pos = new THREE.Vector3();
+                        const nor = new THREE.Vector3();
+                        const perMesh = Math.floor(TOTAL / meshes.length);
+                        let idx = 0;
+                        meshes.forEach((mesh, m) => {
+                            // Geometria-proxy só com position/normal: atributos extras do
+                            // gltf-transform (_uint8attribute) quebram o toNonIndexed() do r128
+                            const src = mesh.geometry;
+                            const cleanGeo = new THREE.BufferGeometry();
+                            if (src.index) cleanGeo.setIndex(src.index);
+                            cleanGeo.setAttribute('position', src.attributes.position);
+                            if (src.attributes.normal) cleanGeo.setAttribute('normal', src.attributes.normal);
+                            const proxyMesh = new THREE.Mesh(cleanGeo);
+                            const sampler = new THREE.MeshSurfaceSampler(proxyMesh).build();
+                            const n = (m === meshes.length - 1) ? TOTAL - idx : perMesh;
+                            for (let i = 0; i < n; i++) {
+                                sampler.sample(pos, nor);
+                                pos.applyMatrix4(mesh.matrixWorld);
+                                positions.set([pos.x, pos.y, pos.z], idx * 3);
+                                normals.set([nor.x, nor.y, nor.z], idx * 3);
+                                idx++;
+                            }
+                        });
+
+                        // Normaliza: centraliza e escala para caber na cena
+                        const box = new THREE.Box3().setFromArray(positions);
+                        const size = box.getSize(new THREE.Vector3());
+                        const center = box.getCenter(new THREE.Vector3());
+                        const scale = 175 / Math.max(size.x, size.y, size.z);
+                        for (let i = 0; i < TOTAL; i++) {
+                            positions[i * 3] = (positions[i * 3] - center.x) * scale;
+                            positions[i * 3 + 1] = (positions[i * 3 + 1] - center.y) * scale;
+                            positions[i * 3 + 2] = (positions[i * 3 + 2] - center.z) * scale;
+                        }
+                        buildPoints(positions, normals);
+                    }, undefined, (err) => {
+                        console.warn('Avatar 3D indisponível, usando fallback:', err);
+                        buildFallbackSphere();
+                    });
+                } else {
+                    buildFallbackSphere();
+                }
+
+                // Mouse: raycast num plano z=0 vira o campo de força do shader
+                const raycaster = new THREE.Raycaster();
+                const ndc = new THREE.Vector2();
+                const forcePlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+                const hit = new THREE.Vector3();
+                let strengthTarget = 0;
+                let rotTargetY = 0, rotTargetX = 0;
+
+                container.addEventListener('pointermove', (e) => {
                     const rect = container.getBoundingClientRect();
-                    const x = e.clientX - rect.left - width / 2;
-                    const y = e.clientY - rect.top - height / 2;
-                    if (Math.abs(x) < 400 && Math.abs(y) < 400) {
-                        targetX = x * 0.0005;
-                        targetY = y * 0.0005;
+                    ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                    raycaster.setFromCamera(ndc, camera);
+                    if (raycaster.ray.intersectPlane(forcePlane, hit)) {
+                        headGroup.worldToLocal(hit);
+                        uniforms.uMouse.value.copy(hit);
                     }
+                    strengthTarget = 1;
                 });
- 
-                container.addEventListener('mousedown', () => { isDragging = true; });
-                window.addEventListener('mouseup', () => { isDragging = false; });
-                container.addEventListener('mousemove', (e) => {
-                    if (isDragging) {
-                        const deltaMove = {
-                            x: e.offsetX - previousMousePosition.x,
-                            y: e.offsetY - previousMousePosition.y
-                        };
-                        globeGroup.rotation.y += deltaMove.x * 0.005;
-                        globeGroup.rotation.x += deltaMove.y * 0.005;
-                    }
-                    previousMousePosition = { x: e.offsetX, y: e.offsetY };
-                });
- 
-                container.addEventListener('touchstart', (e) => {
-                    if(e.touches.length === 1) {
-                        isDragging = true;
-                        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                    }
+                container.addEventListener('pointerleave', () => { strengthTarget = 0; });
+
+                // Rotação sutil seguindo o mouse na janela inteira
+                window.addEventListener('pointermove', (e) => {
+                    rotTargetY = ((e.clientX / window.innerWidth) - 0.5) * 0.55;
+                    rotTargetX = ((e.clientY / window.innerHeight) - 0.5) * 0.3;
                 }, { passive: true });
-                window.addEventListener('touchend', () => { isDragging = false; });
-                container.addEventListener('touchmove', (e) => {
-                    if (isDragging && e.touches.length === 1) {
-                        const deltaMove = {
-                            x: e.touches[0].clientX - previousMousePosition.x,
-                            y: e.touches[0].clientY - previousMousePosition.y
-                        };
-                        globeGroup.rotation.y += deltaMove.x * 0.005;
-                        globeGroup.rotation.x += deltaMove.y * 0.005;
-                        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                    }
-                }, { passive: true });
- 
+
                 const resizeObserver = new ResizeObserver(entries => {
                     for (let entry of entries) {
                         const w = entry.contentRect.width;
@@ -1591,23 +1951,18 @@
                     }
                 });
                 resizeObserver.observe(container);
- 
+
+                const headClock = new THREE.Clock();
                 function animate() {
                     requestAnimationFrame(animate);
- 
-                    if (!isDragging) {
-                        globeGroup.rotation.y += 0.0015;
-                        globeGroup.rotation.x += 0.0005;
- 
-                        globeGroup.rotation.y += (targetX - globeGroup.rotation.y) * 0.05;
-                        globeGroup.rotation.x += (targetY - globeGroup.rotation.x) * 0.05;
+                    const t = headClock.getElapsedTime();
+                    if (!reduceFx) {
+                        uniforms.uTime.value = t;
+                        uniforms.uStrength.value += (strengthTarget - uniforms.uStrength.value) * 0.07;
+                        headGroup.rotation.y += ((BASE_ROT_Y + rotTargetY + Math.sin(t * 0.4) * 0.08) - headGroup.rotation.y) * 0.05;
+                        headGroup.rotation.x += (rotTargetX - headGroup.rotation.x) * 0.05;
+                        headGroup.updateMatrixWorld();
                     }
- 
-                    ringsArray.forEach((ring, index) => {
-                        const speedFactor = (index + 1) * 0.002;
-                        ring.rotation.z += index % 2 === 0 ? speedFactor : -speedFactor;
-                    });
- 
                     renderer.render(scene, camera);
                 }
                 animate();
@@ -1754,7 +2109,7 @@
                     .set(navOverlay, { pointerEvents: 'auto' })
                     .to('#menu-caret', { rotation: 180, duration: 0.5, ease: 'back.out(2)', easeReverse: er ? 'power4.out' : undefined }, 0)
                     .to(menuBackdrop, { opacity: 1, duration: 0.3, ease: 'power2.out' }, 0)
-                    .from('.menu-panel', { autoAlpha: 0, yPercent: -10, scale: 0.6, duration: 0.8, transformOrigin: 'top center', ease: 'back.out(2)', easeReverse: er ? 'power3.out' : undefined }, 0.1)
+                    .from('.menu-panel', { autoAlpha: 0, yPercent: 10, scale: 0.6, duration: 0.8, transformOrigin: 'bottom right', ease: 'back.out(2)', easeReverse: er ? 'power3.out' : undefined }, 0.1)
                     .from('.menu-link', { opacity: 0, y: 6, duration: 0.32, ease: 'power2.out', easeReverse: er ? true : undefined, stagger: 0.05 }, 0.22);
             }
             initMenuTl();
@@ -1818,25 +2173,101 @@
                 });
             }
 
-            // Scrollspy: destaca no painel do menu o link da seção visível
+            // --- SCRAMBLE TEXT NO HOVER (GSAP ScrambleTextPlugin) ---
+            if (window.gsap && window.ScrambleTextPlugin && !prefersReducedMotion) {
+                gsap.registerPlugin(ScrambleTextPlugin);
+                const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#_/<>';
+
+                function attachScramble(trigger, textEl) {
+                    if (!trigger || !textEl || textEl.dataset.scrambleBound) return;
+                    textEl.dataset.scrambleBound = '1';
+                    textEl.dataset.scrambleOriginal = textEl.textContent;
+                    let tween = null;
+                    trigger.addEventListener('mouseenter', () => {
+                        // Se um scramble anterior ainda roda, o textContent atual está
+                        // embaralhado — usa o original guardado; senão, atualiza (textos
+                        // dinâmicos como o indicador de seção mudam com o scroll)
+                        const original = ((tween && tween.isActive())
+                            ? textEl.dataset.scrambleOriginal
+                            : textEl.textContent).trim();
+                        if (!original) return;
+                        textEl.dataset.scrambleOriginal = original;
+                        if (tween) tween.kill();
+                        tween = gsap.to(textEl, {
+                            duration: 0.8,
+                            scrambleText: {
+                                text: original,
+                                characters: SCRAMBLE_CHARS,
+                                speed: 1,
+                                revealDelay: 0.1,
+                                tweenLength: false
+                            },
+                            ease: 'power1.out'
+                        });
+                    });
+                }
+
+                // Texto puro: o próprio elemento é gatilho e alvo
+                document.querySelectorAll('.btn-sys, footer a, section h2, .hud-meta > div:first-child p').forEach(el => {
+                    if (el.children.length === 0) attachScramble(el, el);
+                });
+                // Gatilho no pai, texto num filho
+                document.querySelectorAll('.menu-link').forEach(l => attachScramble(l, l.querySelector('span:first-child')));
+                document.querySelectorAll('#skills .grid > div').forEach(item => {
+                    attachScramble(item, item.querySelector('span.mono, h4'));
+                });
+                attachScramble(document.getElementById('view-cv-btn'), document.querySelector('#view-cv-btn span'));
+                attachScramble(document.getElementById('logo-menu-btn'), document.getElementById('sec-name'));
+            }
+
+            // Scrollspy: destaca o link no painel e atualiza o indicador [n] SEÇÃO
+            const SECTION_META = {
+                home: { num: '[1]', name: 'Home' },
+                projects: { num: '[2]', name: 'Projetos' },
+                skills: { num: '[3]', name: 'Stacks' },
+                about: { num: '[4]', name: 'Sobre' },
+                contact: { num: '[5]', name: 'Contato' },
+            };
+            const secNum = document.getElementById('sec-num');
+            const secName = document.getElementById('sec-name');
             const spySections = document.querySelectorAll('section[id]');
             const spyObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         menuLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === `#${entry.target.id}`));
+                        const meta = SECTION_META[entry.target.id];
+                        if (meta && secNum && secName) {
+                            secNum.textContent = meta.num;
+                            secName.textContent = meta.name;
+                        }
                     }
                 });
             }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
             spySections.forEach(s => spyObserver.observe(s));
+
+            // Relógio local (HUD inferior)
+            const localTime = document.getElementById('local-time');
+            if (localTime) {
+                const tick = () => {
+                    localTime.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                };
+                tick();
+                setInterval(tick, 30000);
+            }
         });
 
         // --- SEQUÊNCIA DE ENTRADA DO HERO (dispara quando o preloader sai) ---
         window.__playHero = function() {
-            if (prefersReducedMotion || !window.gsap) return;
+            if (prefersReducedMotion || !window.gsap) {
+                document.querySelectorAll('[data-bar]').forEach(b => { b.style.width = b.dataset.bar + '%'; });
+                return;
+            }
             const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-            tl.from('#navbar', { y: -30, autoAlpha: 0, duration: 0.7 })
-              .from('.hero-item', { y: 40, autoAlpha: 0, duration: 0.9, stagger: 0.15 }, '-=0.3')
-              .from('.hero-globe', { autoAlpha: 0, scale: 0.92, duration: 1.3 }, '-=0.7');
+            // #navbar é o wrapper do HUD (filhos fixos): apenas fade, sem transform
+            tl.from('#navbar', { autoAlpha: 0, duration: 0.8 })
+              .from('.hero-item', { y: 40, autoAlpha: 0, duration: 0.9, stagger: 0.15 }, '-=0.4')
+              .from('.hero-globe', { autoAlpha: 0, scale: 0.92, duration: 1.3 }, '-=0.7')
+              .to('[data-bar]', { width: (i, el) => el.dataset.bar + '%', duration: 1.2, ease: 'power3.out', stagger: 0.2 }, '-=0.9');
         };
 
         // --- INTRO SCREEN: cortina SVG em onda (clique para entrar) ---
