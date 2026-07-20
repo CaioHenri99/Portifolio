@@ -355,6 +355,11 @@
         .menu-overlay.menu-css.menu-open .menu-backdrop { opacity: 1; }
         .menu-overlay.menu-css.menu-open .menu-panel { visibility: visible; opacity: 1; }
 
+        /* --- Mobile: 3D não captura o gesto de rolagem --- */
+        @media (hover: none) {
+            #globe-container { pointer-events: none; }
+        }
+
         /* --- Acessibilidade: movimento reduzido --- */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
@@ -369,7 +374,7 @@
         /* --- Social Icons Custom Style (example-2) --- */
         .example-2 {
             display: flex;
-            justify-content: flex-start;
+            justify-content: center;
             align-items: center;
             flex-direction: row;
             gap: 1rem;
@@ -819,7 +824,7 @@
     </section>
 
     <div id="project-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden backdrop-blur-sm px-4">
-        <div class="glass-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all">
+        <div class="glass-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-2xl font-bold dark:text-white">Detalhes do Projeto</h3>
@@ -855,7 +860,7 @@
                     </button>
                 </div>
             </div>
-            <div class="p-3 md:p-4 bg-slate-950/60 grow">
+            <div class="p-3 md:p-4 bg-slate-950/60 grow" data-lenis-prevent>
                 <iframe id="cv-frame" data-src="src/Curriculo_Caio_Henrique.pdf" title="Currículo de Caio Henrique em PDF" class="w-full h-[72vh] rounded-lg border border-slate-800 bg-slate-900"></iframe>
             </div>
         </div>
@@ -873,22 +878,22 @@
                         Tecnologias
                     </h3>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">Python</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">Machine Learning</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">GenAI</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">SQL</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">Keras</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">TensorFlow</span>
                         </div>
                     </div>
@@ -900,22 +905,22 @@
                         Ferramentas & Libs
                     </h3>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">Pandas</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">NumPy</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">Google AI Studio</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">Streamlit</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">Docker</span>
                         </div>
-                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default">
+                        <div class="px-4 py-2 bg-slate-800/40 border border-slate-700/50 rounded-lg text-center hover:bg-indigo-600/30 hover:border-indigo-500/50 transition duration-300 cursor-default flex items-center justify-center">
                             <span class="font-medium text-sm dark:text-gray-200">Git/Github</span>
                         </div>
                     </div>
@@ -1074,10 +1079,9 @@
     <section id="contact" class="py-10 md:py-20 px-4 bg-transparent">
         <div class="max-w-6xl mx-auto">
             <h2 class="text-3xl font-bold text-center mb-12 dark:text-white reveal reveal-scale">Entre em Contato</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div class="reveal reveal-left" style="transition-delay: 150ms;">
-                    <h3 class="text-xl font-bold mb-6 dark:text-white">Informações de Contato</h3>
-                    <div class="space-y-6">
+            <div class="max-w-3xl mx-auto">
+                <div class="glass-card p-6 md:p-10 rounded-2xl reveal reveal-scale" style="transition-delay: 150ms;">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                         <div class="flex items-start">
                             <div class="mr-4 mt-1">
                                 <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1124,8 +1128,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-8">
-                        <h4 class="font-medium mb-4 dark:text-gray-200">Redes Sociais</h4>
+                    <div class="mt-10 pt-8 border-t border-slate-800/60 text-center">
+                        <h4 class="font-medium mb-5 dark:text-gray-200">Redes Sociais</h4>
                         <ul class="example-2">
                             <li class="icon-content">
                                 <a href="https://www.linkedin.com/in/caio-henrique7/" aria-label="LinkedIn" data-social="linkedin" target="_blank" rel="noopener noreferrer">
@@ -1155,34 +1159,6 @@
                                 <div class="tooltip">Instagram</div>
                             </li>
                         </ul>
-                    </div>
-                </div>
-                <div class="glass-card p-6 md:p-8 rounded-2xl reveal reveal-right" style="transition-delay: 200ms;">
-                    <h3 class="text-xl font-bold mb-6 dark:text-white">Envie uma Mensagem</h3>
-                    <form id="contact-form" class="space-y-6">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-slate-300 mb-1">Nome</label>
-                            <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-slate-700/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-slate-900/60 text-white">
-                        </div>
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-slate-300 mb-1">Email</label>
-                            <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-slate-700/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-slate-900/60 text-white">
-                        </div>
-                        <div>
-                            <label for="subject" class="block text-sm font-medium text-slate-300 mb-1">Assunto</label>
-                            <input type="text" id="subject" name="subject" class="w-full px-4 py-2 border border-slate-700/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-slate-900/60 text-white">
-                        </div>
-                        <div>
-                            <label for="message" class="block text-sm font-medium text-slate-300 mb-1">Mensagem</label>
-                            <textarea id="message" name="message" rows="4" required class="w-full px-4 py-2 border border-slate-700/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-slate-900/60 text-white"></textarea>
-                        </div>
-                        <button type="submit" id="contact-submit" class="magnetic px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition w-full btn-glow disabled:opacity-60 disabled:cursor-wait">Enviar Mensagem</button>
-                    </form>
-                    <div id="form-success" class="mt-4 p-4 bg-green-900/60 border border-green-800 text-green-200 rounded-md hidden">
-                        Sua mensagem foi enviada com sucesso! Entrarei em contato em breve.
-                    </div>
-                    <div id="form-error" class="mt-4 p-4 bg-red-900/60 border border-red-800 text-red-200 rounded-md hidden">
-                        Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente mais tarde.
                     </div>
                 </div>
             </div>
@@ -1444,38 +1420,6 @@
                     if (!modal.classList.contains('hidden')) { modal.classList.add('hidden'); lockScroll(false); }
                 }
             });
-
-            // --- FORMULÁRIO DE CONTATO (envio real via FormSubmit) ---
-            const contactForm = document.getElementById('contact-form');
-            const submitBtn = document.getElementById('contact-submit');
-            contactForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const successBox = document.getElementById('form-success');
-                const errorBox = document.getElementById('form-error');
-                successBox.classList.add('hidden');
-                errorBox.classList.add('hidden');
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Enviando...';
-                try {
-                    const data = Object.fromEntries(new FormData(contactForm).entries());
-                    const res = await fetch('https://formsubmit.co/ajax/infinit.dev7@gmail.com', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                        body: JSON.stringify({ ...data, _subject: `Portfólio — ${data.subject || 'Nova mensagem'}` })
-                    });
-                    if (!res.ok) throw new Error('Falha no envio');
-                    contactForm.reset();
-                    successBox.classList.remove('hidden');
-                    setTimeout(() => successBox.classList.add('hidden'), 6000);
-                } catch (err) {
-                    errorBox.classList.remove('hidden');
-                    setTimeout(() => errorBox.classList.add('hidden'), 6000);
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Enviar Mensagem';
-                }
-            });
-
 
             // Smooth Scroll (usa Lenis quando disponível)
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -1740,6 +1684,17 @@
 
         // --- INTERAÇÕES QUE DEPENDEM DO DOM PRONTO (cards, nav, botões) ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Mobile (sem hover): desativa a órbita por toque do avatar 3D
+            // para o arrasto virar rolagem da página; auto-rotate no lugar
+            if (window.matchMedia('(hover: none)').matches) {
+                const avatar = document.querySelector('model-viewer');
+                if (avatar) {
+                    avatar.removeAttribute('camera-controls');
+                    avatar.setAttribute('auto-rotate', '');
+                    avatar.setAttribute('rotation-per-second', '25deg');
+                }
+            }
+
             // Spotlight + tilt 3D nos cards de projeto
             document.querySelectorAll('.project-card').forEach(card => {
                 card.addEventListener('pointermove', (e) => {
