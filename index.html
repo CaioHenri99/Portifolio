@@ -1066,7 +1066,7 @@
                     <span class="ghost-echo text-[22vw] md:text-[10vw] -top-8 md:-top-14 -left-1" aria-hidden="true">Infinit_Dev</span>
 
                     <p class="hero-item sys-label mb-5">[ Info_Log ]</p>
-                    <h1 class="hero-item text-5xl md:text-7xl mb-6 text-white leading-none">
+                    <h1 class="hero-item text-5xl md:text-6xl lg:text-7xl mb-6 text-white leading-[1.1]">
                         <span class="typewriter" id="typewriter"></span>
                     </h1>
                     <p class="hero-item mono text-[13px] md:text-sm text-white/50 mb-10 max-w-md leading-relaxed">
@@ -1150,7 +1150,7 @@
                     <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    Currículo — Caio Henrique
+                    <span>Currículo — Caio Henrique</span>
                 </h3>
                 <div class="flex items-center gap-3">
                     <a href="src/Curriculo_Caio_Henrique.pdf" download="Curriculo_Caio_Henrique.pdf" class="btn-sys btn-sys--solid !px-4 !py-2 !text-[11px]">
@@ -1174,12 +1174,12 @@
             <p class="sys-label text-center mb-3 reveal reveal-scale">[ Stack_02 ]</p>
             <h2 class="text-4xl md:text-5xl text-center mb-12 text-white reveal reveal-scale">Stacks</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 <div class="glass-card p-6 md:p-7 rounded-2xl h-full reveal reveal-left" style="transition-delay: 150ms;">
                     <h3 class="text-lg font-bold mb-6 dark:text-white flex items-center gap-2">
                         <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                        Core
+                        <span>Core</span>
                     </h3>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
@@ -1203,7 +1203,7 @@
                 <div class="glass-card p-6 md:p-7 rounded-2xl h-full reveal reveal-scale" style="transition-delay: 250ms;">
                     <h3 class="text-lg font-bold mb-6 dark:text-white flex items-center gap-2">
                         <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        Dados & BI
+                        <span>Dados & BI</span>
                     </h3>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
@@ -1221,10 +1221,10 @@
                     </div>
                 </div>
 
-                <div class="glass-card p-6 md:p-7 rounded-2xl h-full reveal reveal-right" style="transition-delay: 350ms;">
+                <div class="glass-card p-6 md:p-7 rounded-2xl h-full reveal reveal-right md:col-span-2 lg:col-span-1" style="transition-delay: 350ms;">
                     <h3 class="text-lg font-bold mb-6 dark:text-white flex items-center gap-2">
                         <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
-                        Dev & Cloud
+                        <span>Dev & Cloud</span>
                     </h3>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[2px] text-center hover:bg-white/10 hover:border-white/40 transition duration-300 cursor-default flex items-center justify-center">
@@ -2207,17 +2207,31 @@
                     });
                 }
 
-                // Texto puro: o próprio elemento é gatilho e alvo
-                document.querySelectorAll('.btn-sys, footer a, section h2, .hud-meta > div:first-child p').forEach(el => {
-                    if (el.children.length === 0) attachScramble(el, el);
-                });
-                // Gatilho no pai, texto num filho
+                // Gatilho no pai, texto num filho (antes dos genéricos, para o
+                // hover do card inteiro embaralhar o título)
+                document.querySelectorAll('.project-card').forEach(c => attachScramble(c, c.querySelector('h3')));
                 document.querySelectorAll('.menu-link').forEach(l => attachScramble(l, l.querySelector('span:first-child')));
                 document.querySelectorAll('#skills .grid > div').forEach(item => {
                     attachScramble(item, item.querySelector('span.mono, h4'));
                 });
+                // Cabeçalhos com ícone SVG: o texto fica num <span> próprio
+                document.querySelectorAll('h3').forEach(h => {
+                    const s = h.querySelector('span');
+                    if (s && s.children.length === 0 && !s.classList.contains('text-gradient-animate')) attachScramble(h, s);
+                });
+                const cvLabel = document.querySelector('.cv-download .label');
+                if (cvLabel) attachScramble(cvLabel, cvLabel.querySelector('.title'));
                 attachScramble(document.getElementById('view-cv-btn'), document.querySelector('#view-cv-btn span'));
                 attachScramble(document.getElementById('logo-menu-btn'), document.getElementById('sec-name'));
+
+                // Texto puro: o próprio elemento é gatilho e alvo
+                document.querySelectorAll([
+                    '.btn-sys', 'footer a', 'section h2', '.hud-meta > div:first-child p',
+                    'h3', 'h4', 'h5', '.sys-label', '.term-line', '.stat-row span',
+                    '.card-topbar > span', '#contact .grid p'
+                ].join(', ')).forEach(el => {
+                    if (el.children.length === 0) attachScramble(el, el);
+                });
             }
 
             // Scrollspy: destaca o link no painel e atualiza o indicador [n] SEÇÃO
