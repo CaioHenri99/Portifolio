@@ -35,6 +35,7 @@
 
         html {
             overflow-x: hidden;
+            overflow-x: clip; /* proíbe pan lateral por toque (hidden só esconde a barra) */
             scrollbar-gutter: stable;
         }
 
@@ -44,6 +45,7 @@
             background-color: #000;
             transition: all 0.3s ease;
             overflow-x: hidden;
+            overflow-x: clip;
         }
 
         .mono { font-family: 'IBM Plex Mono', monospace; }
@@ -590,9 +592,17 @@
         .menu-overlay.menu-css.menu-open .menu-backdrop { opacity: 1; }
         .menu-overlay.menu-css.menu-open .menu-panel { visibility: visible; opacity: 1; }
 
-        /* --- Mobile: 3D não captura o gesto de rolagem --- */
+        /* --- Mobile: 3D não captura o gesto de rolagem + otimizações de scroll --- */
         @media (hover: none) {
             #globe-container { pointer-events: none; }
+            /* Camadas fixas repintam a cada frame de rolagem em GPU móvel: */
+            .noise-layer { display: none; }
+            .ambient-glow { animation: none !important; opacity: 0.12; }
+            .tech-grid {
+                -webkit-mask-image: none;
+                mask-image: none;
+                opacity: 0.5;
+            }
         }
 
         /* --- Acessibilidade: movimento reduzido --- */
@@ -1706,10 +1716,11 @@
                 }
             });
 
-            // Trava/destrava o scroll e a barra (compatível com Lenis)
+            // Trava/destrava o scroll e a barra (compatível com Lenis).
+            // Destrava com '' para preservar o overflow-x: clip do CSS
             function lockScroll(lock) {
                 document.documentElement.style.overflow = lock ? 'hidden' : '';
-                document.body.style.overflow = lock ? 'hidden' : 'auto';
+                document.body.style.overflow = lock ? 'hidden' : '';
                 if (window.__lenis) { lock ? window.__lenis.stop() : window.__lenis.start(); }
             }
             window.__lockScroll = lockScroll;
@@ -1762,9 +1773,11 @@
             const container = document.getElementById('globe-container');
             if (container && window.THREE) {
                 const reduceFx = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                const IS_TOUCH = window.matchMedia('(hover: none)').matches;
                 const width = container.clientWidth;
                 const height = container.clientHeight || 450;
                 const BASE_ROT_Y = -Math.PI / 2; // frente do modelo aponta para +X; gira para a câmera
+                const PIXEL_RATIO = Math.min(window.devicePixelRatio, IS_TOUCH ? 1.5 : 2);
 
                 const scene = new THREE.Scene();
                 const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
@@ -1772,7 +1785,7 @@
 
                 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
                 renderer.setSize(width, height);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.setPixelRatio(PIXEL_RATIO);
                 container.appendChild(renderer.domElement);
 
                 const headGroup = new THREE.Group();
@@ -1785,7 +1798,7 @@
                     uStrength: { value: 0 },
                     uRadius: { value: 42 },
                     uSize: { value: 1.35 },
-                    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
+                    uPixelRatio: { value: PIXEL_RATIO }
                 };
                 const particleMaterial = new THREE.ShaderMaterial({
                     uniforms: uniforms,
@@ -1870,7 +1883,7 @@
                         gltf.scene.traverse(o => { if (o.isMesh) meshes.push(o); });
                         if (!meshes.length) { buildFallbackSphere(); return; }
 
-                        const TOTAL = 26000;
+                        const TOTAL = IS_TOUCH ? 14000 : 26000;
                         const positions = new Float32Array(TOTAL * 3);
                         const normals = new Float32Array(TOTAL * 3);
                         const pos = new THREE.Vector3();
@@ -1954,9 +1967,17 @@
                 });
                 resizeObserver.observe(container);
 
+                // Pausa o render quando o hero sai da tela (GPU livre para a rolagem)
+                let headVisible = true;
+                const headVisObserver = new IntersectionObserver((entries) => {
+                    headVisible = entries[0].isIntersecting;
+                }, { rootMargin: '100px' });
+                headVisObserver.observe(container);
+
                 const headClock = new THREE.Clock();
                 function animate() {
                     requestAnimationFrame(animate);
+                    if (!headVisible) return;
                     const t = headClock.getElapsedTime();
                     if (!reduceFx) {
                         uniforms.uTime.value = t;
@@ -1975,6 +1996,7 @@
         //  CAMADA PREMIUM — Lenis, GSAP, micro-interações e efeitos
         // ============================================================
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
         // --- LENIS SMOOTH SCROLL (integrado ao ticker do GSAP) ---
         if (!prefersReducedMotion && typeof Lenis !== 'undefined' && window.gsap) {
@@ -2010,7 +2032,7 @@
             const scrollY = window.scrollY;
             const totalHeight = Math.max(document.body.scrollHeight - window.innerHeight, 1);
             scrollProgress.style.width = `${(scrollY / totalHeight) * 100}%`;
-            if (!prefersReducedMotion) {
+            if (!prefersReducedMotion && !isTouchDevice) {
                 dataParticles.forEach(particle => {
                     particle.style.transform = `translateY(${scrollY * parseFloat(particle.dataset.speed)}px)`;
                 });
@@ -2154,7 +2176,9 @@
             });
 
             // Animações de scroll com scrub (parallax amarrado ao scroll)
-            if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
+            // Desligado no touch: animar camadas com blur gigante a cada frame
+            // de rolagem é uma das principais causas de jank em GPU móvel
+            if (!prefersReducedMotion && !isTouchDevice && window.gsap && window.ScrollTrigger) {
                 gsap.registerPlugin(ScrollTrigger);
 
                 // Globo se afasta e esmaece conforme o hero sai de cena
@@ -2305,8 +2329,10 @@
                 entered = true;
                 const release = () => {
                     intro.remove();
+                    // Restaura para '' (não 'auto'): inline 'auto' sobrescreveria o
+                    // overflow-x do CSS e liberaria o pan lateral no mobile
                     document.documentElement.style.overflow = '';
-                    document.body.style.overflow = 'auto';
+                    document.body.style.overflow = '';
                     if (window.__lenis) window.__lenis.start();
                 };
                 if (window.gsap && !prefersReducedMotion) {
